@@ -4,7 +4,7 @@ export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
   memorySize: 128,
   timeout: 300,
-  reservedConcurrency: 1,
+  reservedConcurrency: 2,
   iamRoleStatements: [
     {
       Effect: 'Allow',
