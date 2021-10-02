@@ -3,3 +3,4 @@ jspm_packages
 .serverless
 .webpack
 .idea
+.esbuild
