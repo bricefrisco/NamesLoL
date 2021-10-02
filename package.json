@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@middy/core": "^1.5.2",
-    "@middy/http-json-body-parser": "^1.5.2"
+    "@middy/http-json-body-parser": "^1.5.2",
+    "node-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@serverless/typescript": "^2.23.0",
