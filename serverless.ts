@@ -1,6 +1,6 @@
 import type {AWS} from '@serverless/typescript';
 
-import sqsUpdateConsumer from '@functions/sqs-update-consumer';
+import {sqsUpdateConsumer, sqsUpdateProducer} from "@functions/index";
 
 const serverlessConfiguration: AWS = {
   service: 'nameslol',
@@ -28,12 +28,15 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000 --trace-deprecation',
       RIOT_API_TOKEN: '${ssm:/riot-api-token}',
-      DYNAMODB_TABLE: '${sls:stage}-SummonerNames'
+      DYNAMODB_TABLE: '${sls:stage}-SummonerNames',
+      SQS_QUEUE_URL: 'https://sqs.us-east-1.amazonaws.com/${aws:accountId}/${sls:stage}-NameUpdateQueue.fifo',
+      CONSUMER_CONCURRENCY: '10', // Keep below 15 to avoid exceeding Riot rate limits
+      SQS_SEND_DELAY_MS: '50' // Delay in milliseconds to avoid exceeding SQS rate limits
     },
     lambdaHashingVersion: '20201221',
   },
 
-  functions: {sqsUpdateConsumer},
+  functions: {sqsUpdateConsumer, sqsUpdateProducer},
 
   resources: {
     Resources: {
@@ -105,9 +108,13 @@ const serverlessConfiguration: AWS = {
       NameUpdateQueue: {
         Type: "AWS::SQS::Queue",
         Properties: {
-          QueueName: "${sls:stage}-NameUpdateQueue",
+          QueueName: "${sls:stage}-NameUpdateQueue.fifo",
           MessageRetentionPeriod: 86400,
-          VisibilityTimeout: 300
+          VisibilityTimeout: 90,
+          FifoQueue: true,
+          ContentBasedDeduplication: true,
+          DeduplicationScope: 'messageGroup',
+          FifoThroughputLimit: 'perMessageGroupId'
         }
       }
     }

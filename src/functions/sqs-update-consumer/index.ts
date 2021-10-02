@@ -3,8 +3,7 @@ import { handlerPath } from '@libs/handlerResolver';
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
   memorySize: 128,
-  timeout: 300,
-  reservedConcurrency: 2,
+  timeout: 90,
   iamRoleStatements: [
     {
       Effect: 'Allow',
@@ -14,7 +13,9 @@ export default {
   ],
   events: [
     {
-      sqs: 'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue'
+      sqs: {
+        arn: 'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo'
+      }
     }
   ],
 }
