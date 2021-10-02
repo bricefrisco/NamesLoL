@@ -1,6 +1,6 @@
 import type {AWS} from '@serverless/typescript';
 
-import lambdaHandler from '@functions/sqs-update-consumer';
+import sqsUpdateConsumer from '@functions/sqs-update-consumer';
 
 const serverlessConfiguration: AWS = {
   service: 'nameslol',
@@ -31,7 +31,7 @@ const serverlessConfiguration: AWS = {
     lambdaHashingVersion: '20201221',
   },
 
-  functions: {lambdaHandler},
+  functions: {sqsUpdateConsumer},
 
   resources: {
     Resources: {
