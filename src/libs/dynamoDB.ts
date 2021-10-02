@@ -8,7 +8,7 @@ const client = new DynamoDB.DocumentClient();
 export const querySummoner = (region: Region, name: string): Promise<QueryOutput> => {
   return new Promise((res, rej) => {
     client.query({
-      TableName: "lol-summoners",
+      TableName: process.env.DYNAMODB_TABLE,
       ExpressionAttributeValues: {
         ":n": region.toUpperCase() + "#" + name.toUpperCase(),
       },
@@ -23,7 +23,7 @@ export const querySummoner = (region: Region, name: string): Promise<QueryOutput
 export const querySummonersBetweenDate = (region: Region, t1: number, t2: number): Promise<QueryOutput> => {
   return new Promise((res, rej) => {
     client.query({
-      TableName: 'lol-summoners',
+      TableName: process.env.DYNAMODB_TABLE,
       Limit: 8000,
       ExpressionAttributeValues: {
         ':region': region.toUpperCase(),
@@ -42,7 +42,7 @@ export const querySummonersBetweenDate = (region: Region, t1: number, t2: number
 export const querySummoners = (region: Region, timestamp: number, backwards: boolean): Promise<QueryOutput> => {
   return new Promise((res, rej) => {
     client.query({
-      TableName: "lol-summoners",
+      TableName: process.env.DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
         ":region": region.toUpperCase(),
@@ -63,7 +63,7 @@ export const querySummoners = (region: Region, timestamp: number, backwards: boo
 export const querySummonersByNameSize = (region: Region, timestamp: number, backwards: boolean, nameSize: number): Promise<QueryOutput> => {
   return new Promise((res, rej) => {
     client.query({
-      TableName: "lol-summoners",
+      TableName: process.env.DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
         ":nameLength": region.toUpperCase() + "#" + nameSize,
@@ -84,7 +84,7 @@ export const querySummonersByNameSize = (region: Region, timestamp: number, back
 export const updateSummoner = (summoner: SummonerEntity): Promise<UpdateItemOutput> => {
   return new Promise((res, rej) => {
     client.update({
-      TableName: "lol-summoners",
+      TableName: process.env.DYNAMODB_TABLE,
       Key: {
         n: summoner.region.toUpperCase() + "#" + summoner.name.toUpperCase(),
       },
@@ -109,7 +109,7 @@ export const updateSummoner = (summoner: SummonerEntity): Promise<UpdateItemOutp
 export const deleteSummoner = (name: string, region: Region): Promise<DeleteItemOutput> => {
   return new Promise<DeleteItemOutput>((res, rej) => {
     client.delete({
-      TableName: "lol-summoners",
+      TableName: process.env.DYNAMODB_TABLE,
       Key: {
         n: region.toUpperCase() + '#' + name.toUpperCase()
       }
