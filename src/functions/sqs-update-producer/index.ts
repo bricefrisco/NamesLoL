@@ -9,7 +9,10 @@ export default {
     {
       Effect: 'Allow',
       Action: ['dynamodb:Query'],
-      Resource: 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames'
+      Resource: [
+        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
+        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*'
+      ]
     }
   ],
   events: [
