@@ -30,7 +30,7 @@ const updateOrDeleteSummoner = (name: string, region: Region, token: string) => 
   })
 }
 
-const what = (event: SQSEvent) => {
+export const main = (event: SQSEvent) => {
   return new Promise<any>((res) => {
     const items: SQSMessage[] = event.Records.map((event: SQSRecord) => JSON.parse(event.body))
 
@@ -47,8 +47,4 @@ const what = (event: SQSEvent) => {
 
     proc(0)
   })
-}
-
-export const main = async (event: SQSEvent) => {
-  return await what(event)
 }
