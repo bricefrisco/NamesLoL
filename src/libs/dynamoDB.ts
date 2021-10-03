@@ -3,6 +3,18 @@ import {QueryOutput, UpdateItemOutput, DeleteItemOutput} from "aws-sdk/clients/d
 import {Region} from "@libs/types/region";
 import {SummonerEntity} from "@libs/types/summonerEntity";
 
+export interface DynamoEntity {
+  n: string       // region#name
+  ad: number,     // availability date
+  r: string,      // region
+  aid: string,    // account id
+  rd: number,     // revision date
+  l: number,      // level
+  nl: string,     // name length
+  ld: number      // last updated
+  si: number      // summoner icon
+}
+
 const client = new DynamoDB.DocumentClient();
 
 export const querySummoner = (region: Region, name: string): Promise<QueryOutput> => {
@@ -96,6 +108,7 @@ export const updateSummoner = (summoner: SummonerEntity): Promise<UpdateItemOutp
         ":l": summoner.level,
         ":nl": summoner.region.toUpperCase() + "#" + summoner.name.length,
         ":ld": summoner.lastUpdated,
+        ':si': summoner.summonerIcon
       },
       UpdateExpression:
         "set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld",
