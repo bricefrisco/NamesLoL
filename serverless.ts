@@ -1,6 +1,6 @@
 import type {AWS} from '@serverless/typescript';
 
-import {sqsUpdateConsumer, sqsUpdateProducer, summonersApi} from "@functions/index";
+import {sqsUpdateConsumer, sqsUpdateProducer, summonerApi, summonersApi} from "@functions/index";
 
 const serverlessConfiguration: AWS = {
   service: 'nameslol',
@@ -36,7 +36,7 @@ const serverlessConfiguration: AWS = {
     lambdaHashingVersion: '20201221',
   },
 
-  functions: {sqsUpdateConsumer, sqsUpdateProducer, summonersApi},
+  functions: {sqsUpdateConsumer, sqsUpdateProducer, summonersApi, summonerApi},
 
   resources: {
     Resources: {
