@@ -1,3 +1,20 @@
+import {Region} from "@libs/types/region";
+import {badRequest} from "@libs/responses";
+
+const regions: string[] = Object.values(Region).map((r) => r.toLowerCase())
+
+export const validateRegion = (region: string) => {
+  if (!regions.includes(region)) {
+    return badRequest(`Invalid region '${region}'. Correct path is /{region}/summoners, with one of these regions: ${regions.join(', ')}`)
+  }
+}
+
+export const validateName = (name: string) => {
+  if (name == null) throw new Error('Name cannot be empty. Example: /{region}/summoner/{name}')
+  if (name.length < 3) throw new Error('Name length cannot be less than 3')
+  if (name.length > 16) throw new Error('Name length cannot be greater than 16 characters')
+}
+
 export const parseTimestamp = (timestamp: string): number => {
   if (timestamp == null) {
     throw new Error('Timestamp cannot be null. Example: /{region}/summoners?timestamp=12345')

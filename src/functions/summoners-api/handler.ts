@@ -5,9 +5,7 @@ import {mapDynamoSummoner} from "@libs/mapper";
 import {SummonerEntity} from "@libs/types/summonerEntity";
 import {AttributeMap, QueryOutput} from "aws-sdk/clients/dynamodb";
 import {badRequest, error} from "@libs/responses";
-import {parseNameLength, parseTimestamp} from "@libs/validation";
-
-const regions: string[] = Object.values(Region).map((r) => r.toLowerCase())
+import {parseNameLength, parseTimestamp, validateRegion} from "@libs/validation";
 
 const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
   return {
@@ -25,25 +23,19 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
 
   let region: string | Region = event.pathParameters.region ? event.pathParameters.region.toLowerCase() : undefined
 
-  if (!regions.includes(region)) {
-    return badRequest(`Invalid region '${event.pathParameters.region}'. Correct path is /{region}/summoners, with one of these regions: ${regions.join(', ')}`)
+  try {
+    validateRegion(region)
+  } catch (e) {
+    return badRequest(e.message)
   }
 
   const backwards = event.queryStringParameters.backwards === "true";
 
   let timestamp: number
-  try {
-    timestamp = parseTimestamp(event.queryStringParameters.timestamp)
-  } catch (e) {
-    return badRequest(e.message)
-  }
+  try {timestamp = parseTimestamp(event.queryStringParameters.timestamp)} catch (e) {return badRequest(e.message)}
 
   let nameLength: number
-  try {
-    nameLength = parseNameLength(event.queryStringParameters.nameLength)
-  } catch (e) {
-    return badRequest(e.message)
-  }
+  try {nameLength = parseNameLength(event.queryStringParameters.nameLength)} catch (e) {return badRequest(e.message)}
 
   if (nameLength) {
     console.log('Querying summoners by name size...')
