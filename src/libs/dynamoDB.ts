@@ -111,7 +111,7 @@ export const updateSummoner = (summoner: SummonerEntity): Promise<UpdateItemOutp
         ':si': summoner.summonerIcon
       },
       UpdateExpression:
-        "set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld",
+        "set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld, si = :si",
     }, (err, data) => {
       if (err) rej(err)
       else res(data)
