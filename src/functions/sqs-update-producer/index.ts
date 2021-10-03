@@ -13,6 +13,13 @@ export default {
         'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
         'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*'
       ]
+    },
+    {
+      Effect: 'Allow',
+      Action: ['sqs:SendMessage'],
+      Resource: [
+        'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo'
+      ]
     }
   ],
   events: [
