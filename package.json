@@ -12,6 +12,7 @@
   "dependencies": {
     "@middy/core": "^1.5.2",
     "@middy/http-json-body-parser": "^1.5.2",
+    "lambda-rate-limiter": "^3.0.1",
     "node-fetch": "^3.0.0"
   },
   "devDependencies": {

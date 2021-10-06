@@ -19,6 +19,7 @@ export default {
       http: {
         path: '/{region}/summoner/{name}',
         method: 'get',
+        cors: true,
         request: {
           parameters: {
             paths: {

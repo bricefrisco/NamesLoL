@@ -31,7 +31,9 @@ const serverlessConfiguration: AWS = {
       DYNAMODB_TABLE: '${sls:stage}-SummonerNames',
       SQS_QUEUE_URL: 'https://sqs.us-east-1.amazonaws.com/${aws:accountId}/${sls:stage}-NameUpdateQueue.fifo',
       CONSUMER_CONCURRENCY: '10', // Keep below 15 to avoid exceeding Riot rate limits
-      SQS_SEND_DELAY_MS: '50' // Delay in milliseconds to avoid exceeding SQS rate limits
+      SQS_SEND_DELAY_MS: '50', // Delay in milliseconds to avoid exceeding SQS rate limits
+      CORS_METHODS: 'OPTIONS, GET',
+      CORS_SITES: '*'
     },
     lambdaHashingVersion: '20201221',
   },

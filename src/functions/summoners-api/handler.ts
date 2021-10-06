@@ -10,6 +10,10 @@ import {parseNameLength, parseTimestamp, validateRegion} from "@libs/validation"
 const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': process.env.CORS_SITES,
+      'Access-Control-Allow-Methods': process.env.CORS_METHODS,
+    },
     body: JSON.stringify({
       summoners,
       forwards: summoners && summoners.length > 0 && summoners[summoners.length - 1].availabilityDate,
