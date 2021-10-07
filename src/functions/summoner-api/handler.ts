@@ -1,6 +1,6 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import {APIGatewayEvent, APIGatewayProxyResult} from "aws-lambda";
 import {Region} from "@libs/types/region";
-import {badRequest, error, notFound, tooManyRequests} from "@libs/responses";
+import {badRequest, error, notFound, tooManyRequests, warmUp} from "@libs/responses";
 import {validateName, validateRegion} from "@libs/validation";
 import {fetchSummoner} from "@libs/riotApi";
 import {mapSummoner} from "@libs/mapper";
@@ -27,6 +27,13 @@ export const success = (summoner: SummonerEntity): APIGatewayProxyResult => {
 
 export const main = (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event))
+
+  if (event.body === 'serverless-warmer') {
+    return new Promise((res) => {
+      console.log('Function is warm!')
+      res(warmUp('Function is warm.'))
+    })
+  }
 
   const ip = event.headers['X-Forwarded-For'].split(',')[0]
 

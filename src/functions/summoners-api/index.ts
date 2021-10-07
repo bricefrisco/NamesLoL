@@ -14,6 +14,11 @@ export default {
       ]
     }
   ],
+  warmup: {
+    warmer: {
+      enabled: true
+    }
+  },
   events: [
     {
       http: {

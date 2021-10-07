@@ -4,7 +4,7 @@ import {querySummoners, querySummonersByNameSize} from "@libs/dynamoDB";
 import {mapDynamoSummoner} from "@libs/mapper";
 import {SummonerEntity} from "@libs/types/summonerEntity";
 import {AttributeMap, QueryOutput} from "aws-sdk/clients/dynamodb";
-import {badRequest, error} from "@libs/responses";
+import {badRequest, error, warmUp} from "@libs/responses";
 import {parseNameLength, parseTimestamp, validateRegion} from "@libs/validation";
 
 const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
@@ -25,15 +25,17 @@ const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
 export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event))
 
-  let region: string | Region = event.pathParameters.region ? event.pathParameters.region.toLowerCase() : undefined
-
-  try {
-    validateRegion(region)
-  } catch (e) {
-    return badRequest(e.message)
+  if (event.body === 'serverless-warmer') {
+    return new Promise((res) => {
+      console.log('Function is warm!')
+      res(warmUp('Function is warm.'))
+    })
   }
 
-  const backwards = event.queryStringParameters.backwards === "true";
+  let region: string | Region = event.pathParameters.region ? event.pathParameters.region.toLowerCase() : undefined
+  try {validateRegion(region)} catch (e) {return badRequest(e.message)}
+
+  const backwards = event.queryStringParameters.backwards !== null && event.queryStringParameters.backwards === "true";
 
   let timestamp: number
   try {timestamp = parseTimestamp(event.queryStringParameters.timestamp)} catch (e) {return badRequest(e.message)}

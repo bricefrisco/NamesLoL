@@ -17,9 +17,19 @@ const serverlessConfiguration: AWS = {
       define: {'require.resolve': undefined},
       platform: 'node',
     },
+    warmup: {
+      warmer: {
+        enabled: false, // Enabled at function level
+        package: {
+          individually: false
+        },
+        prewarm: true,
+        payload: { body: 'serverless-warmer'}
+      }
+    }
   },
 
-  plugins: ['serverless-esbuild', 'serverless-iam-roles-per-function'],
+  plugins: ['serverless-esbuild', 'serverless-iam-roles-per-function', 'serverless-plugin-warmup'],
 
   provider: {
     name: 'aws',

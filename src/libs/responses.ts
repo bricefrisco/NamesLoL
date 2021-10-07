@@ -1,3 +1,14 @@
+export const warmUp = (message: string) => {
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': process.env.CORS_SITES,
+      'Access-Control-Allow-Methods': process.env.CORS_METHODS,
+    },
+    body: JSON.stringify(message)
+  }
+}
+
 export const badRequest = (error: string) => {
   return {
     statusCode: 400,

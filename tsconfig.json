@@ -15,7 +15,7 @@
     "node_modules/**/*",
     ".serverless/**/*",
     ".webpack/**/*",
-    "_warmup/**/*",
+    ".warmup/**/*",
     ".vscode/**/*"
   ],
   "ts-node": {
