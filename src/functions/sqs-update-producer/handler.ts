@@ -46,33 +46,34 @@ const sendMessage = (message: SQSMessage): Promise<string> => {
   })
 }
 
+const sendMessageWithDelay = (wait: number, n: string, r: string): Promise<any> => {
+  return new Promise((res1, rej1) => {
+    setTimeout(() => {
+      sendMessage({name: n, region: Region[r as keyof typeof Region]}) // Queue up SQS calls
+        .then(res1)
+        .catch(rej1)
+    }, wait)
+  })
+}
+
 const updateRegion = (region: string, before: number, after: number) => {
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<any>((resolve) => {
     querySummonersBetweenDate(Region[region as keyof typeof Region], before, after)
       .then((data: QueryOutput) => {
-        const queue: any[] = []
-        data.Items.map((item: AttributeMap) => {
+        const queue: Promise<any>[] = []
+
+        let i = 0
+        data.Items.forEach((item: AttributeMap) => {
           const r = item.n.toString().split('#')[0]
           const n = item.n.toString().split('#')[1]
-          queue.push(() => sendMessage({name: n, region: Region[r as keyof typeof Region]}).then(console.log).catch(reject)) // Queue up SQS calls
+          console.log('adding to queue')
+          queue.push(sendMessageWithDelay(i * parseInt(process.env.SQS_SEND_DELAY_MS), n, r).then(console.log).catch(console.error))
+          i++
         })
+
+        Promise.all(queue).then(() => resolve(`Completed region ${region}`))
         return queue;
-      }).then((queue) => {
-
-        const length = queue.length
-
-        for (let i = 0; i <= length; i++) { // Iterate through the queue, executing one per SQS_SEND_DELAY_MS,
-          setTimeout(() => {        //  to avoid hitting the SQS rate limit of 300+ per second
-            const fn = queue.shift()       //  i <= length --> to hit the else condition below and resolve once completed
-            if (fn) {
-              fn()
-            } else {
-              resolve(`Completed region ${region}`)
-            }
-          }, i * parseInt(process.env.SQS_SEND_DELAY_MS))
-
-        }
-    })
+      })
   })
 }
 
