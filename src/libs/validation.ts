@@ -12,7 +12,6 @@ export const validateRegion = (region: string) => {
 export const validateName = (name: string) => {
   if (name == null) throw new Error('Name cannot be empty. Example: /{region}/summoner/{name}')
   if (name.length < 3) throw new Error('Name length cannot be less than 3')
-  if (name.length > 16) throw new Error('Name length cannot be greater than 16 characters')
 }
 
 export const parseTimestamp = (timestamp: string): number => {
