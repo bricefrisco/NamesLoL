@@ -32,6 +32,10 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     })
   }
 
+  if (!event.queryStringParameters) {
+    return badRequest(`Required parameter 'timestamp' is not present. Example: /{region}/summoners?timestamp=12345`)
+  }
+
   let region: string | Region = event.pathParameters.region ? event.pathParameters.region.toLowerCase() : undefined
   try {validateRegion(region)} catch (e) {return badRequest(e.message)}
 
