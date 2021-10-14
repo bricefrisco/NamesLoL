@@ -1,0 +1,29 @@
+name: CICD
+on:
+  push:
+    branches: [dev, master]
+
+jobs:
+  cicd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: us-east-1
+
+      - name: Install serverless
+        run: npm install -g serverless
+
+      - name: Build dependencies
+        run: npm install
+
+      - name: Deploy to dev
+        if: endsWith(github.ref, '/dev')
+        run: serverless deploy
+
+      - name: Deploy to prod
+        if: endsWith(github.ref, '/prod')
+        run: serverless deploy --stage production
