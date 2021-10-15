@@ -25,5 +25,5 @@ jobs:
         run: serverless deploy
 
       - name: Deploy to prod
-        if: endsWith(github.ref, '/prod')
+        if: endsWith(github.ref, '/master')
         run: serverless deploy --stage prod
