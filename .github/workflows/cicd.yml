@@ -17,7 +17,7 @@ jobs:
       - name: Install serverless
         run: npm install -g serverless
 
-      - name: Build dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Deploy to dev
@@ -26,4 +26,4 @@ jobs:
 
       - name: Deploy to prod
         if: endsWith(github.ref, '/prod')
-        run: serverless deploy --stage production
+        run: serverless deploy --stage prod
