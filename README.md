@@ -23,7 +23,7 @@ These can be opened to request a new feature, or to report a current feature tha
 
 ## Installation
 Create an [AWS account](https://aws.amazon.com/account/sign-up),   
-Configure [Serverless Framework](serverless.com/framework/docs/getting-started) by running `npm install -g serverless` and then running `serverless login`
+Configure [Serverless Framework](https://serverless.com/framework/docs/getting-started) by running `npm install -g serverless` and then running `serverless login`
 
 To test locally, take a look at [Serverless Local Development](https://www.serverless.com/blog/serverless-local-development).  
 To deploy to test, run `serverless deploy`.   
