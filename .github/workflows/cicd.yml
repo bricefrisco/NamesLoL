@@ -20,10 +20,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy to dev
+      - name: Lint
+        run: npm run lint
+
+      - name: Deploy - Development
         if: endsWith(github.ref, '/dev')
         run: serverless deploy
 
-      - name: Deploy to prod
+      - name: Deploy - Production
         if: endsWith(github.ref, '/master')
         run: serverless deploy --stage prod
