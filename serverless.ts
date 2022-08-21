@@ -9,8 +9,7 @@ import {
 
 const serverlessConfiguration: AWS = {
   service: 'nameslol',
-  frameworkVersion: '2',
-  variablesResolutionMode: '20210326',
+  frameworkVersion: '3',
   configValidationMode: 'error',
   custom: {
     esbuild: {
@@ -56,7 +55,6 @@ const serverlessConfiguration: AWS = {
       CORS_METHODS: 'OPTIONS, GET',
       CORS_SITES: '*',
     },
-    lambdaHashingVersion: '20201221',
   },
 
   functions: {
