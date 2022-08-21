@@ -1,4 +1,4 @@
-import {handlerPath} from '@libs/handlerResolver';
+import { handlerPath } from '@libs/handlerResolver';
 
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
@@ -7,17 +7,23 @@ export default {
   iamRoleStatements: [
     {
       Effect: 'Allow',
-      Action: ['dynamodb:Query', 'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:DeleteItem'],
+      Action: [
+        'dynamodb:Query',
+        'dynamodb:GetItem',
+        'dynamodb:PutItem',
+        'dynamodb:UpdateItem',
+        'dynamodb:DeleteItem',
+      ],
       Resource: [
         'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
-        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*'
-      ]
-    }
+        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*',
+      ],
+    },
   ],
   warmup: {
     warmer: {
-      enabled: true
-    }
+      enabled: true,
+    },
   },
   events: [
     {
@@ -28,11 +34,11 @@ export default {
         request: {
           parameters: {
             paths: {
-              region: true
-            }
-          }
-        }
-      }
-    }
+              region: true,
+            },
+          },
+        },
+      },
+    },
   ],
-}
+};

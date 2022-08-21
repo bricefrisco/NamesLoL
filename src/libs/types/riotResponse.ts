@@ -1,9 +1,9 @@
 export interface Status {
-  message: string
+  message: string;
 }
 
 export interface RiotResponse {
-  status?: Status,
+  status?: Status;
   accountId: string;
   profileIconId: number;
   revisionDate: number;

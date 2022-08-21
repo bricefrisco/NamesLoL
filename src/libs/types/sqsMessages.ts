@@ -1,4 +1,4 @@
 export interface SQSMessage {
-  name: string,
-  region: string
+  name: string;
+  region: string;
 }

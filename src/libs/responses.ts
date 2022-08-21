@@ -5,9 +5,9 @@ export const warmUp = (message: string) => {
       'Access-Control-Allow-Origin': process.env.CORS_SITES,
       'Access-Control-Allow-Methods': process.env.CORS_METHODS,
     },
-    body: JSON.stringify(message)
-  }
-}
+    body: JSON.stringify(message),
+  };
+};
 
 export const badRequest = (error: string) => {
   return {
@@ -16,9 +16,9 @@ export const badRequest = (error: string) => {
       'Access-Control-Allow-Origin': process.env.CORS_SITES,
       'Access-Control-Allow-Methods': process.env.CORS_METHODS,
     },
-    body: JSON.stringify({error})
-  }
-}
+    body: JSON.stringify({ error }),
+  };
+};
 
 export const notFound = (message: string) => {
   return {
@@ -27,9 +27,9 @@ export const notFound = (message: string) => {
       'Access-Control-Allow-Origin': process.env.CORS_SITES,
       'Access-Control-Allow-Methods': process.env.CORS_METHODS,
     },
-    body: JSON.stringify({message})
-  }
-}
+    body: JSON.stringify({ message }),
+  };
+};
 
 export const tooManyRequests = (message: string) => {
   return {
@@ -38,9 +38,9 @@ export const tooManyRequests = (message: string) => {
       'Access-Control-Allow-Origin': process.env.CORS_SITES,
       'Access-Control-Allow-Methods': process.env.CORS_METHODS,
     },
-    body: JSON.stringify({message})
-  }
-}
+    body: JSON.stringify({ message }),
+  };
+};
 
 export const error = (error: string) => {
   return {
@@ -49,6 +49,6 @@ export const error = (error: string) => {
       'Access-Control-Allow-Origin': process.env.CORS_SITES,
       'Access-Control-Allow-Methods': process.env.CORS_METHODS,
     },
-    body: JSON.stringify({error})
-  }
-}
+    body: JSON.stringify({ error }),
+  };
+};
