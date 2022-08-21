@@ -85,12 +85,13 @@ export const main = async (
       nameLength,
     )
       .then((data) =>
-        data.Items.sort((a, b) => parseInt(a.ad.N) - parseInt(b.ad.N)).map(
-          (d) =>
-            mapDynamoSummoner(
-              d,
-              Region[region.toUpperCase() as keyof typeof Region],
-            ),
+        data.Items.sort(
+          (a, b) => parseInt(a.ad.toString()) - parseInt(b.ad.toString()),
+        ).map((d) =>
+          mapDynamoSummoner(
+            d,
+            Region[region.toUpperCase() as keyof typeof Region],
+          ),
         ),
       )
       .then(respond)
