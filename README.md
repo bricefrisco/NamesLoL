@@ -10,7 +10,7 @@ https://www.nameslol.com/
 
 ## Architecture
 
-![architecture](https://i.imgur.com/KK3qnE1.png)
+![architecture](https://i.imgur.com/7w9VUjy.png)
 
 There are three primary sections/processes of this application:
 
@@ -22,25 +22,27 @@ We dive deeper into each of these three sections below.
 
 ### 1. Scheduler to refresh data
 
-1. A CRON scheduler triggers a Lambda function, `SQSUpdateProducer`
-2. `SQSUpdateProducer` queries DynamoDB (`SummonerNames`) for names which are expired or have expired between a specified period
-3. `SQSUpdateProducer` sends the names queried above to an SQS Queue (`NameUpdateQueue.fifo`)
-4. The `NameUpdateQueue.fifo` triggers the `SQSUpdateConsumer` lambda function
-5. `SQSUpdateConsumer` fetches the latest summoner data from Riot API
-6. `SQSUpdateConsumer` updates the latest data fetched above into DynamoDB
+1. (1) A CRON scheduler triggers a Lambda function, `SQSUpdateProducer`
+2. (2) `SQSUpdateProducer` queries DynamoDB (`SummonerNames`) for names which are expired or have expired between a specified period
+3. (3) `SQSUpdateProducer` sends the names queried above to an SQS Queue (`NameUpdateQueue.fifo`)
+4. (4) The `NameUpdateQueue.fifo` triggers the `SQSUpdateConsumer` lambda function
+5. (5) `SQSUpdateConsumer` fetches the latest summoner data from Riot API
+6. (6) `SQSUpdateConsumer` updates the latest data fetched above into DynamoDB
 
 ### 2. Summoner API
 
-7. An end user makes an API request that is routed via API Gateway
-8. API Gateway routes the request and invokes the `SummonerAPI` lambda function
-9. `SummonerAPI` fetches the latest summoner data from Riot API
-10. `SummonerAPI` persists the data fetched above into DynamoDB. The data is then sent back to the user
+1. (7) An end user makes an API request that is routed via API Gateway
+2. (8) API Gateway routes the request and invokes the `SummonerAPI` lambda function
+3. (9) `SummonerAPI` fetches the latest summoner data from Riot API
+4. (10) `SummonerAPI` persists the data fetched above into DynamoDB.
+5. The data is then sent back to the user
 
 ### 3. Summoners API
 
-7. An end user makes an API request that is routed via API Gateway
-8. API Gateway routes this request and invokes the `SummonersAPI` lambda function
-9. `SummonersAPI` fetches expiring summoner names from DynamoDB. The data is then sent back to the user
+1. (7) An end user makes an API request that is routed via API Gateway
+2. (11) API Gateway routes this request and invokes the `SummonersAPI` lambda function
+3. (12) `SummonersAPI` fetches expiring summoner names from DynamoDB.
+4. The data is then sent back to the user
 
 ## Tech Stack
 
@@ -52,7 +54,7 @@ We dive deeper into each of these three sections below.
 
 ## Bugs and Feature Requests
 
-All bugs and feature requests should be submitted by opening a Github [issue](https://github.com/bricefrisco/NamesLoL/issues).  
+All bugs and feature requests should be submitted by opening a Github [issue](https://github.com/bricefrisco/NamesLoL/issues).
 These can be opened to request a new feature, or to report a current feature that is unavailable.
 
 ## Installation
