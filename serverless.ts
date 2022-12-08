@@ -41,7 +41,6 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000 --trace-deprecation',
-      AWS_REGION: 'us-east-1',
       RIOT_API_TOKEN: '${ssm:/riot-api-token}',
       DYNAMODB_TABLE: '${sls:stage}-SummonerNames',
       SQS_QUEUE_URL:
