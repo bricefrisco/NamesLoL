@@ -1,5 +1,6 @@
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { AttributeValue, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
+import { QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { NativeAttributeValue } from '@aws-sdk/util-dynamodb';
 import { SQSMessage } from '@libs/types/sqsMessages';
 import { Region } from '@libs/types/region';
 import { querySummonersBetweenDate } from '@libs/dynamoDB';
@@ -98,7 +99,7 @@ export const main = async (event: ScheduledEvent): Promise<void> => {
 
     const results: QueryCommandOutput = await querySummonersBetweenDate(region, start, end);
 
-    for (const item of results.Items as Record<string, AttributeValue>[]) {
+    for (const item of results.Items as Record<string, NativeAttributeValue>[]) {
       const r = item.n.toString().split('#')[0];
       const n = item.n.toString().split('#')[1];
       try {

@@ -15,7 +15,9 @@ const serverlessConfiguration: AWS = {
         'aws-sdk',
         '@aws-sdk/client-dynamodb',
         '@aws-sdk/client-lambda',
-        '@aws-sdk/client-sqs'
+        '@aws-sdk/client-sqs',
+        '@aws-sdk/lib-dynamodb',
+        '@aws-sdk/util-dynamodb'
       ],
       target: 'node18',
       define: { 'require.resolve': undefined },

@@ -1,7 +1,7 @@
 import { Region } from '@libs/types/region';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 import { RiotResponse } from '@libs/types/riotResponse';
-import { AttributeValue } from '@aws-sdk/client-dynamodb';
+import { NativeAttributeValue } from '@aws-sdk/util-dynamodb';
 
 const calcAvailabilityDate = (revisionDate: number, summonerLevel: number): number => {
   const date = new Date(revisionDate);
@@ -30,7 +30,7 @@ export const mapSummoner = (summoner: RiotResponse, r: Region): SummonerEntity =
 };
 
 export const mapDynamoSummoner = (
-  attributes: Record<string, AttributeValue>,
+  attributes: Record<string, NativeAttributeValue>,
   r: Region
 ): SummonerEntity => {
   return {

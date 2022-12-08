@@ -5,7 +5,8 @@ import { mapDynamoSummoner } from '@libs/mapper';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 import { badRequest, error, summonersApiResponse, warmUp } from '@libs/responses';
 import { getValidRegions, parseNameLength, parseTimestamp, regionIsValid } from '@libs/validation';
-import { AttributeValue, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
+import { QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { NativeAttributeValue } from '@aws-sdk/util-dynamodb';
 
 export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const traceId = event.headers['X-Amzn-Trace-Id'];
@@ -53,7 +54,7 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     }
 
     const summoners: SummonerEntity[] = queryOutput.Items
-      ? queryOutput.Items.map((item: Record<string, AttributeValue>) =>
+      ? queryOutput.Items.map((item: Record<string, NativeAttributeValue>) =>
           mapDynamoSummoner(item, region)
         )
       : [];

@@ -1,12 +1,13 @@
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
-  DynamoDBClient,
+  DynamoDBDocumentClient,
   QueryCommandOutput,
   QueryCommand,
-  UpdateItemCommandOutput,
-  UpdateItemCommand,
-  DeleteItemCommandOutput,
-  DeleteItemCommand
-} from '@aws-sdk/client-dynamodb';
+  UpdateCommandOutput,
+  UpdateCommand,
+  DeleteCommandOutput,
+  DeleteCommand
+} from '@aws-sdk/lib-dynamodb';
 import { Region } from '@libs/types/region';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 
@@ -26,7 +27,8 @@ if (!process.env.AWS_REGION) {
   throw new Error('AWS_REGION environment variable must be set!');
 }
 
-const dynamoDB = new DynamoDBClient({ region: process.env.AWS_REGION });
+const dynamoDBClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+const documentClient = DynamoDBDocumentClient.from(dynamoDBClient);
 
 if (!process.env.DYNAMODB_TABLE) {
   throw new Error('DYNAMODB_TABLE environment variable must be set!');
@@ -35,11 +37,11 @@ if (!process.env.DYNAMODB_TABLE) {
 const DYNAMODB_TABLE: string = process.env.DYNAMODB_TABLE;
 
 export const querySummoner = async (region: Region, name: string): Promise<QueryCommandOutput> => {
-  return await dynamoDB.send(
+  return await documentClient.send(
     new QueryCommand({
       TableName: DYNAMODB_TABLE,
       ExpressionAttributeValues: {
-        ':n': { S: region.toUpperCase() + '#' + name.toUpperCase() }
+        ':n': region.toUpperCase() + '#' + name.toUpperCase()
       },
       KeyConditionExpression: 'n = :n'
     })
@@ -51,14 +53,14 @@ export const querySummonersBetweenDate = async (
   t1: Date,
   t2: Date
 ): Promise<QueryCommandOutput> => {
-  return await dynamoDB.send(
+  return await documentClient.send(
     new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 8000,
       ExpressionAttributeValues: {
-        ':region': { S: region.toUpperCase() },
-        ':t1': { N: t1.valueOf().toString() },
-        ':t2': { N: t2.valueOf().toString() }
+        ':region': region.toUpperCase(),
+        ':t1': t1.valueOf(),
+        ':t2': t2.valueOf()
       },
       KeyConditionExpression: 'r = :region and ad between :t1 and :t2',
       IndexName: 'region-activation-date-index'
@@ -71,13 +73,13 @@ export const querySummoners = async (
   timestamp: number,
   backwards: boolean
 ): Promise<QueryCommandOutput> => {
-  return await dynamoDB.send(
+  return await documentClient.send(
     new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
-        ':region': { S: region.toUpperCase() },
-        ':timestamp': { N: timestamp.toString() }
+        ':region': region.toUpperCase(),
+        ':timestamp': timestamp
       },
       KeyConditionExpression: backwards
         ? 'r = :region and ad <= :timestamp'
@@ -94,13 +96,13 @@ export const querySummonersByNameSize = async (
   backwards: boolean,
   nameSize: number
 ): Promise<QueryCommandOutput> => {
-  return await dynamoDB.send(
+  return await documentClient.send(
     new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
-        ':nameLength': { S: `${region.toUpperCase()}#${nameSize}` },
-        ':timestamp': { N: timestamp.toString() }
+        ':nameLength': `${region.toUpperCase()}#${nameSize}`,
+        ':timestamp': timestamp
       },
       KeyConditionExpression: backwards
         ? 'nl = :nameLength and ad <= :timestamp'
@@ -111,24 +113,22 @@ export const querySummonersByNameSize = async (
   );
 };
 
-export const updateSummoner = async (
-  summoner: SummonerEntity
-): Promise<UpdateItemCommandOutput> => {
-  return await dynamoDB.send(
-    new UpdateItemCommand({
+export const updateSummoner = async (summoner: SummonerEntity): Promise<UpdateCommandOutput> => {
+  return await documentClient.send(
+    new UpdateCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
         n: { S: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase() }
       },
       ExpressionAttributeValues: {
-        ':ad': { N: summoner.availabilityDate.toString() },
-        ':r': { S: summoner.region.toUpperCase() },
-        ':aid': { S: summoner.accountId },
-        ':rd': { N: summoner.revisionDate.toString() },
-        ':l': { N: summoner.level.toString() },
-        ':nl': { S: `${summoner.region.toUpperCase()}#${summoner.name.length}` },
-        ':ld': { N: summoner.lastUpdated.toString() },
-        ':si': { N: summoner.summonerIcon.toString() }
+        ':ad': summoner.availabilityDate,
+        ':r': summoner.region.toUpperCase(),
+        ':aid': summoner.accountId,
+        ':rd': summoner.revisionDate,
+        ':l': summoner.level,
+        ':nl': `${summoner.region.toUpperCase()}#${summoner.name.length}`,
+        ':ld': summoner.lastUpdated,
+        ':si': summoner.summonerIcon
       },
       UpdateExpression:
         'set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld, si = :si'
@@ -139,9 +139,9 @@ export const updateSummoner = async (
 export const deleteSummoner = async (
   name: string,
   region: Region
-): Promise<DeleteItemCommandOutput> => {
-  return await dynamoDB.send(
-    new DeleteItemCommand({
+): Promise<DeleteCommandOutput> => {
+  return await documentClient.send(
+    new DeleteCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
         n: { S: region.toUpperCase() + '#' + name.toUpperCase() }
