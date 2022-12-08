@@ -25,14 +25,14 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
 
   let timestamp: number;
   try {
-    timestamp = parseTimestamp(event.queryStringParameters.timestamp);
+    timestamp = parseTimestamp(event.queryStringParameters?.timestamp);
   } catch (e) {
     return badRequest(traceId, e.message);
   }
 
   let nameLength: number;
   try {
-    nameLength = parseNameLength(event.queryStringParameters.nameLength);
+    nameLength = parseNameLength(event.queryStringParameters?.nameLength);
   } catch (e) {
     return badRequest(traceId, e.message);
   }
