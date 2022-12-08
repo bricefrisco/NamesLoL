@@ -1,8 +1,8 @@
-import { SQS } from 'aws-sdk';
+import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
+import { AttributeValue, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
 import { SQSMessage } from '@libs/types/sqsMessages';
 import { Region } from '@libs/types/region';
 import { querySummonersBetweenDate } from '@libs/dynamoDB';
-import { QueryOutput, AttributeMap } from 'aws-sdk/clients/dynamodb';
 
 enum RefreshType {
   HOURLY_REFRESH = 'HOURLY_REFRESH',
@@ -19,7 +19,12 @@ interface Bounds {
   end: Date;
 }
 
-const sqs = new SQS({ apiVersion: '2012-11-05' });
+if (!process.env.AWS_REGION) {
+  throw new Error('AWS_REGION environment variable must be set!');
+}
+
+const SQS = new SQSClient({ region: process.env.AWS_REGION });
+
 const DAY = 24 * 60 * 60 * 1000;
 
 if (!process.env.CONSUMER_CONCURRENCY) {
@@ -51,14 +56,14 @@ const sendMessage = async (message: SQSMessage): Promise<void> => {
     )}`
   );
 
-  await sqs
-    .sendMessage({
+  await SQS.send(
+    new SendMessageCommand({
       QueueUrl: process.env.SQS_QUEUE_URL,
       MessageBody: JSON.stringify(message),
       // Create {CONSUMER_CURRENCY} message groups, lambda will scale up to this amount
       MessageGroupId: `update-queue-${groupId}`
     })
-    .promise();
+  );
 };
 
 const getBounds = (refreshType: RefreshType): Bounds => {
@@ -91,9 +96,9 @@ export const main = async (event: ScheduledEvent): Promise<void> => {
   for (const regionStr of Object.keys(Region)) {
     const region = Region[regionStr as keyof typeof Region];
 
-    const results: QueryOutput = await querySummonersBetweenDate(region, start, end);
+    const results: QueryCommandOutput = await querySummonersBetweenDate(region, start, end);
 
-    for (const item of results.Items as AttributeMap[]) {
+    for (const item of results.Items as Record<string, AttributeValue>[]) {
       const r = item.n.toString().split('#')[0];
       const n = item.n.toString().split('#')[1];
       try {

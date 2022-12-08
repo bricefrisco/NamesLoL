@@ -1,5 +1,12 @@
-import { DynamoDB } from 'aws-sdk';
-import { QueryOutput, UpdateItemOutput, DeleteItemOutput } from 'aws-sdk/clients/dynamodb';
+import {
+  DynamoDBClient,
+  QueryCommandOutput,
+  QueryCommand,
+  UpdateItemCommandOutput,
+  UpdateItemCommand,
+  DeleteItemCommandOutput,
+  DeleteItemCommand
+} from '@aws-sdk/client-dynamodb';
 import { Region } from '@libs/types/region';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 
@@ -15,7 +22,11 @@ export interface DynamoEntity {
   si: number; // summoner icon
 }
 
-const client = new DynamoDB.DocumentClient();
+if (!process.env.AWS_REGION) {
+  throw new Error('AWS_REGION environment variable must be set!');
+}
+
+const dynamoDB = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 if (!process.env.DYNAMODB_TABLE) {
   throw new Error('DYNAMODB_TABLE environment variable must be set!');
@@ -23,50 +34,50 @@ if (!process.env.DYNAMODB_TABLE) {
 
 const DYNAMODB_TABLE: string = process.env.DYNAMODB_TABLE;
 
-export const querySummoner = async (region: Region, name: string): Promise<QueryOutput> => {
-  return await client
-    .query({
+export const querySummoner = async (region: Region, name: string): Promise<QueryCommandOutput> => {
+  return await dynamoDB.send(
+    new QueryCommand({
       TableName: DYNAMODB_TABLE,
       ExpressionAttributeValues: {
-        ':n': region.toUpperCase() + '#' + name.toUpperCase()
+        ':n': { S: region.toUpperCase() + '#' + name.toUpperCase() }
       },
       KeyConditionExpression: 'n = :n'
     })
-    .promise();
+  );
 };
 
 export const querySummonersBetweenDate = async (
   region: Region,
   t1: Date,
   t2: Date
-): Promise<QueryOutput> => {
-  return await client
-    .query({
+): Promise<QueryCommandOutput> => {
+  return await dynamoDB.send(
+    new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 8000,
       ExpressionAttributeValues: {
-        ':region': region.toUpperCase(),
-        ':t1': t1.valueOf(),
-        ':t2': t2.valueOf()
+        ':region': { S: region.toUpperCase() },
+        ':t1': { N: t1.valueOf().toString() },
+        ':t2': { N: t2.valueOf().toString() }
       },
       KeyConditionExpression: 'r = :region and ad between :t1 and :t2',
       IndexName: 'region-activation-date-index'
     })
-    .promise();
+  );
 };
 
 export const querySummoners = async (
   region: Region,
   timestamp: number,
   backwards: boolean
-): Promise<QueryOutput> => {
-  return await client
-    .query({
+): Promise<QueryCommandOutput> => {
+  return await dynamoDB.send(
+    new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
-        ':region': region.toUpperCase(),
-        ':timestamp': timestamp
+        ':region': { S: region.toUpperCase() },
+        ':timestamp': { N: timestamp.toString() }
       },
       KeyConditionExpression: backwards
         ? 'r = :region and ad <= :timestamp'
@@ -74,7 +85,7 @@ export const querySummoners = async (
       IndexName: 'region-activation-date-index',
       ScanIndexForward: !backwards
     })
-    .promise();
+  );
 };
 
 export const querySummonersByNameSize = async (
@@ -82,14 +93,14 @@ export const querySummonersByNameSize = async (
   timestamp: number,
   backwards: boolean,
   nameSize: number
-): Promise<QueryOutput> => {
-  return await client
-    .query({
+): Promise<QueryCommandOutput> => {
+  return await dynamoDB.send(
+    new QueryCommand({
       TableName: DYNAMODB_TABLE,
       Limit: 35,
       ExpressionAttributeValues: {
-        ':nameLength': `${region.toUpperCase()}#${nameSize}`,
-        ':timestamp': timestamp
+        ':nameLength': { S: `${region.toUpperCase()}#${nameSize}` },
+        ':timestamp': { N: timestamp.toString() }
       },
       KeyConditionExpression: backwards
         ? 'nl = :nameLength and ad <= :timestamp'
@@ -97,39 +108,44 @@ export const querySummonersByNameSize = async (
       IndexName: 'name-length-availability-date-index',
       ScanIndexForward: !backwards
     })
-    .promise();
+  );
 };
 
-export const updateSummoner = async (summoner: SummonerEntity): Promise<UpdateItemOutput> => {
-  return await client
-    .update({
+export const updateSummoner = async (
+  summoner: SummonerEntity
+): Promise<UpdateItemCommandOutput> => {
+  return await dynamoDB.send(
+    new UpdateItemCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
-        n: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase()
+        n: { S: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase() }
       },
       ExpressionAttributeValues: {
-        ':ad': summoner.availabilityDate,
-        ':r': summoner.region.toUpperCase(),
-        ':aid': summoner.accountId,
-        ':rd': summoner.revisionDate,
-        ':l': summoner.level,
-        ':nl': `${summoner.region.toUpperCase()}#${summoner.name.length}`,
-        ':ld': summoner.lastUpdated,
-        ':si': summoner.summonerIcon
+        ':ad': { N: summoner.availabilityDate.toString() },
+        ':r': { S: summoner.region.toUpperCase() },
+        ':aid': { S: summoner.accountId },
+        ':rd': { N: summoner.revisionDate.toString() },
+        ':l': { N: summoner.level.toString() },
+        ':nl': { S: `${summoner.region.toUpperCase()}#${summoner.name.length}` },
+        ':ld': { N: summoner.lastUpdated.toString() },
+        ':si': { N: summoner.summonerIcon.toString() }
       },
       UpdateExpression:
         'set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld, si = :si'
     })
-    .promise();
+  );
 };
 
-export const deleteSummoner = async (name: string, region: Region): Promise<DeleteItemOutput> => {
-  return await client
-    .delete({
+export const deleteSummoner = async (
+  name: string,
+  region: Region
+): Promise<DeleteItemCommandOutput> => {
+  return await dynamoDB.send(
+    new DeleteItemCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
-        n: region.toUpperCase() + '#' + name.toUpperCase()
+        n: { S: region.toUpperCase() + '#' + name.toUpperCase() }
       }
     })
-    .promise();
+  );
 };

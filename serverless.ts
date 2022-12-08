@@ -11,8 +11,13 @@ const serverlessConfiguration: AWS = {
       bundle: true,
       minify: false,
       sourcemap: true,
-      exclude: ['aws-sdk'],
-      target: 'node14',
+      exclude: [
+        'aws-sdk',
+        '@aws-sdk/client-dynamodb',
+        '@aws-sdk/client-lambda',
+        '@aws-sdk/client-sqs'
+      ],
+      target: 'node18',
       define: { 'require.resolve': undefined },
       platform: 'node'
     },
@@ -32,16 +37,16 @@ const serverlessConfiguration: AWS = {
 
   provider: {
     name: 'aws',
-    runtime: 'nodejs16.x',
+    runtime: 'nodejs18.x',
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000 --trace-deprecation',
+      AWS_REGION: 'us-east-1',
       RIOT_API_TOKEN: '${ssm:/riot-api-token}',
       DYNAMODB_TABLE: '${sls:stage}-SummonerNames',
       SQS_QUEUE_URL:
         'https://sqs.us-east-1.amazonaws.com/${aws:accountId}/${sls:stage}-NameUpdateQueue.fifo',
       CONSUMER_CONCURRENCY: '10', // Keep below 15 to avoid exceeding Riot rate limits
-      SQS_SEND_DELAY_MS: '50', // Delay in milliseconds to avoid exceeding SQS rate limits
       CORS_METHODS: 'OPTIONS, GET',
       CORS_SITES: '*'
     }

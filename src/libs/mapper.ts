@@ -1,7 +1,7 @@
 import { Region } from '@libs/types/region';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 import { RiotResponse } from '@libs/types/riotResponse';
-import { AttributeMap } from 'aws-sdk/clients/dynamodb';
+import { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 const calcAvailabilityDate = (revisionDate: number, summonerLevel: number): number => {
   const date = new Date(revisionDate);
@@ -29,10 +29,13 @@ export const mapSummoner = (summoner: RiotResponse, r: Region): SummonerEntity =
   };
 };
 
-export const mapDynamoSummoner = (attributes: AttributeMap, r: Region): SummonerEntity => {
+export const mapDynamoSummoner = (
+  attributes: Record<string, AttributeValue>,
+  r: Region
+): SummonerEntity => {
   return {
     name: attributes.n.toString().split('#')[1].toLowerCase(),
-    summonerIcon: attributes.si && parseInt(attributes.si.toString()), // May be null - added later on
+    summonerIcon: attributes.si && parseInt(attributes.si.toString()),
     availabilityDate: parseInt(attributes.ad.toString()),
     lastUpdated: parseInt(attributes.ld.toString()),
     region: r,

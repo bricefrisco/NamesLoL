@@ -3,9 +3,9 @@ import { Region } from '@libs/types/region';
 import { querySummoners, querySummonersByNameSize } from '@libs/dynamoDB';
 import { mapDynamoSummoner } from '@libs/mapper';
 import { SummonerEntity } from '@libs/types/summonerEntity';
-import { AttributeMap, QueryOutput } from 'aws-sdk/clients/dynamodb';
 import { badRequest, error, summonersApiResponse, warmUp } from '@libs/responses';
 import { getValidRegions, parseNameLength, parseTimestamp, regionIsValid } from '@libs/validation';
+import { AttributeValue, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
 
 export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const traceId = event.headers['X-Amzn-Trace-Id'];
@@ -45,7 +45,7 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
 
   // Fetch names from DynamoDB
   try {
-    let queryOutput: QueryOutput;
+    let queryOutput: QueryCommandOutput;
     if (nameLength) {
       queryOutput = await querySummonersByNameSize(region, timestamp, backwards, nameLength);
     } else {
@@ -53,7 +53,9 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     }
 
     const summoners: SummonerEntity[] = queryOutput.Items
-      ? queryOutput.Items.map((item: AttributeMap) => mapDynamoSummoner(item, region))
+      ? queryOutput.Items.map((item: Record<string, AttributeValue>) =>
+          mapDynamoSummoner(item, region)
+        )
       : [];
 
     return summonersApiResponse(traceId, summoners);

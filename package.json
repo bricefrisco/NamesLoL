@@ -8,15 +8,17 @@
     "lint": "eslint --ext .ts --ext .js src/**"
   },
   "engines": {
-    "node": ">=16.16.0"
+    "node": ">=18.12.1"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.226.0",
     "@middy/core": "^4.0.3",
     "@middy/http-json-body-parser": "^4.0.3",
     "node-fetch": "^3.3.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.226.0",
+    "@aws-sdk/client-lambda": "^3.226.0",
+    "@aws-sdk/client-sqs": "^3.226.0",
     "@serverless/typescript": "^3.25.0",
     "@types/aws-lambda": "^8.10.109",
     "@types/node": "^18.11.11",
