@@ -14,18 +14,18 @@ const serverlessConfiguration: AWS = {
       exclude: ['aws-sdk'],
       target: 'node14',
       define: { 'require.resolve': undefined },
-      platform: 'node',
+      platform: 'node'
     },
     warmup: {
       warmer: {
         enabled: false, // Enabled at function level
         package: {
-          individually: false,
+          individually: false
         },
         prewarm: true,
-        payload: { body: 'serverless-warmer' },
-      },
-    },
+        payload: { body: 'serverless-warmer' }
+      }
+    }
   },
 
   plugins: ['serverless-esbuild', 'serverless-iam-roles-per-function', 'serverless-plugin-warmup'],
@@ -43,15 +43,15 @@ const serverlessConfiguration: AWS = {
       CONSUMER_CONCURRENCY: '10', // Keep below 15 to avoid exceeding Riot rate limits
       SQS_SEND_DELAY_MS: '50', // Delay in milliseconds to avoid exceeding SQS rate limits
       CORS_METHODS: 'OPTIONS, GET',
-      CORS_SITES: '*',
-    },
+      CORS_SITES: '*'
+    }
   },
 
   functions: {
     sqsUpdateConsumer,
     sqsUpdateProducer,
     summonersApi,
-    summonerApi,
+    summonerApi
   },
 
   resources: {
@@ -64,26 +64,26 @@ const serverlessConfiguration: AWS = {
           AttributeDefinitions: [
             {
               AttributeName: 'n',
-              AttributeType: 'S',
+              AttributeType: 'S'
             },
             {
               AttributeName: 'nl',
-              AttributeType: 'S',
+              AttributeType: 'S'
             },
             {
               AttributeName: 'ad',
-              AttributeType: 'N',
+              AttributeType: 'N'
             },
             {
               AttributeName: 'r',
-              AttributeType: 'S',
-            },
+              AttributeType: 'S'
+            }
           ],
           KeySchema: [
             {
               AttributeName: 'n',
-              KeyType: 'HASH',
-            },
+              KeyType: 'HASH'
+            }
           ],
           GlobalSecondaryIndexes: [
             {
@@ -91,35 +91,35 @@ const serverlessConfiguration: AWS = {
               KeySchema: [
                 {
                   AttributeName: 'nl',
-                  KeyType: 'HASH',
+                  KeyType: 'HASH'
                 },
                 {
                   AttributeName: 'ad',
-                  KeyType: 'RANGE',
-                },
+                  KeyType: 'RANGE'
+                }
               ],
               Projection: {
-                ProjectionType: 'ALL',
-              },
+                ProjectionType: 'ALL'
+              }
             },
             {
               IndexName: 'region-activation-date-index',
               KeySchema: [
                 {
                   AttributeName: 'r',
-                  KeyType: 'HASH',
+                  KeyType: 'HASH'
                 },
                 {
                   AttributeName: 'ad',
-                  KeyType: 'RANGE',
-                },
+                  KeyType: 'RANGE'
+                }
               ],
               Projection: {
-                ProjectionType: 'ALL',
-              },
-            },
-          ],
-        },
+                ProjectionType: 'ALL'
+              }
+            }
+          ]
+        }
       },
       NameUpdateQueue: {
         Type: 'AWS::SQS::Queue',
@@ -130,11 +130,11 @@ const serverlessConfiguration: AWS = {
           FifoQueue: true,
           ContentBasedDeduplication: true,
           DeduplicationScope: 'messageGroup',
-          FifoThroughputLimit: 'perMessageGroupId',
-        },
-      },
-    },
-  },
+          FifoThroughputLimit: 'perMessageGroupId'
+        }
+      }
+    }
+  }
 };
 
 module.exports = serverlessConfiguration;

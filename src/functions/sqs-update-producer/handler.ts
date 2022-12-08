@@ -7,7 +7,7 @@ import { QueryOutput, AttributeMap } from 'aws-sdk/clients/dynamodb';
 enum RefreshType {
   HOURLY_REFRESH = 'HOURLY_REFRESH',
   WEEKLY_REFRESH = 'WEEKLY_REFRESH',
-  MONTHLY_REFRESH = 'MONTHLY_REFRESH',
+  MONTHLY_REFRESH = 'MONTHLY_REFRESH'
 }
 
 interface ScheduledEvent {
@@ -21,6 +21,10 @@ interface Bounds {
 
 const sqs = new SQS({ apiVersion: '2012-11-05' });
 const DAY = 24 * 60 * 60 * 1000;
+
+if (!process.env.CONSUMER_CONCURRENCY) {
+  throw new Error('CONSUMER_CONCURRENCY environment variable must be set!');
+}
 
 const consumerConcurrency: number = parseInt(process.env.CONSUMER_CONCURRENCY);
 let currentGroupId = 0;
@@ -37,10 +41,14 @@ const getGroupId = (): number => {
 const sendMessage = async (message: SQSMessage): Promise<void> => {
   const groupId: number = getGroupId();
 
+  if (!process.env.SQS_QUEUE_URL) {
+    throw new Error('SQS_QUEUE_URL environment variable must be set!');
+  }
+
   console.log(
     `Sending message to ${process.env.SQS_QUEUE_URL} ('update-queue-${groupId}'): ${JSON.stringify(
-      message,
-    )}`,
+      message
+    )}`
   );
 
   await sqs
@@ -48,7 +56,7 @@ const sendMessage = async (message: SQSMessage): Promise<void> => {
       QueueUrl: process.env.SQS_QUEUE_URL,
       MessageBody: JSON.stringify(message),
       // Create {CONSUMER_CURRENCY} message groups, lambda will scale up to this amount
-      MessageGroupId: `update-queue-${groupId}`,
+      MessageGroupId: `update-queue-${groupId}`
     })
     .promise();
 };
@@ -60,17 +68,17 @@ const getBounds = (refreshType: RefreshType): Bounds => {
     case RefreshType.HOURLY_REFRESH:
       return {
         start: new Date(now - 3 * DAY),
-        end: new Date(now + 3 * DAY),
+        end: new Date(now + 3 * DAY)
       };
     case RefreshType.WEEKLY_REFRESH:
       return {
         start: new Date(now - 30 * DAY),
-        end: new Date(now + 30 * DAY),
+        end: new Date(now + 30 * DAY)
       };
     case RefreshType.MONTHLY_REFRESH:
       return {
         start: new Date(now - 90 * DAY),
-        end: new Date(now + 90 * DAY),
+        end: new Date(now + 90 * DAY)
       };
     default:
       throw new Error(`Invalid refresh type: ${refreshType}`);

@@ -11,10 +11,10 @@ export const getValidRegions = (): string[] => {
 };
 
 export const nameIsValid = (name: string): boolean => {
-  return name?.length >= 3;
+  return name.length >= 3;
 };
 
-export const parseTimestamp = (timestamp: string): number => {
+export const parseTimestamp = (timestamp: string | undefined): number => {
   if (timestamp == null) {
     throw new Error('Timestamp cannot be null. Example: /{region}/summoners?timestamp=12345');
   }
@@ -25,7 +25,7 @@ export const parseTimestamp = (timestamp: string): number => {
     parsedTimestamp = parseInt(timestamp);
   } catch (e) {
     throw new Error(
-      'Could not parse timestamp. Please include numbers only. Example: /{region}/summoners?timestamp=12345',
+      'Could not parse timestamp. Please include numbers only. Example: /{region}/summoners?timestamp=12345'
     );
   }
 
@@ -36,8 +36,8 @@ export const parseTimestamp = (timestamp: string): number => {
   return parsedTimestamp;
 };
 
-export const parseNameLength = (nameLength: string): number => {
-  if (nameLength == null) return null;
+export const parseNameLength = (nameLength: string | undefined): number | null => {
+  if (!nameLength) return null;
 
   let parsedNameLength: number;
   try {

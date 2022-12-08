@@ -11,13 +11,17 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
   const traceId = event.headers['X-Amzn-Trace-Id'];
   console.log(JSON.stringify({ traceId, event }));
 
+  if (!traceId) {
+    throw new Error('Request must have a traceId.');
+  }
+
   if (event.body === 'serverless-warmer') {
     return warmUp(traceId, 'Function is warm.');
   }
 
   // Request validation
-  const regionStr: string = event.pathParameters?.region?.toLowerCase();
-  if (!regionIsValid(regionStr)) {
+  const regionStr: string | undefined = event.pathParameters?.region?.toLowerCase();
+  if (!regionStr || !regionIsValid(regionStr)) {
     return badRequest(traceId, `Invalid region. Use one of: ${getValidRegions()}`);
   }
 
@@ -30,7 +34,7 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     return badRequest(traceId, e.message);
   }
 
-  let nameLength: number;
+  let nameLength: number | null;
   try {
     nameLength = parseNameLength(event.queryStringParameters?.nameLength);
   } catch (e) {
@@ -48,9 +52,9 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
       queryOutput = await querySummoners(region, timestamp, backwards);
     }
 
-    const summoners: SummonerEntity[] = queryOutput.Items.map((item: AttributeMap) =>
-      mapDynamoSummoner(item, region),
-    );
+    const summoners: SummonerEntity[] = queryOutput.Items
+      ? queryOutput.Items.map((item: AttributeMap) => mapDynamoSummoner(item, region))
+      : [];
 
     return summonersApiResponse(traceId, summoners);
   } catch (e) {

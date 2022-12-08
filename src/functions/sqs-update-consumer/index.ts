@@ -12,16 +12,16 @@ export default {
         'dynamodb:GetItem',
         'dynamodb:PutItem',
         'dynamodb:UpdateItem',
-        'dynamodb:DeleteItem',
+        'dynamodb:DeleteItem'
       ],
-      Resource: 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
-    },
+      Resource: 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames'
+    }
   ],
   events: [
     {
       sqs: {
-        arn: 'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo',
-      },
-    },
-  ],
+        arn: 'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo'
+      }
+    }
+  ]
 };

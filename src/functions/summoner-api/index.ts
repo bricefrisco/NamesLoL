@@ -12,18 +12,18 @@ export default {
         'dynamodb:GetItem',
         'dynamodb:PutItem',
         'dynamodb:UpdateItem',
-        'dynamodb:DeleteItem',
+        'dynamodb:DeleteItem'
       ],
       Resource: [
         'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
-        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*',
-      ],
-    },
+        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*'
+      ]
+    }
   ],
   warmup: {
     warmer: {
-      enabled: true,
-    },
+      enabled: true
+    }
   },
   events: [
     {
@@ -35,11 +35,11 @@ export default {
           parameters: {
             paths: {
               region: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  ],
+              name: true
+            }
+          }
+        }
+      }
+    }
+  ]
 };

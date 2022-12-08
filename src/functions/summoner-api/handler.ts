@@ -12,20 +12,28 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
   const traceId = event.headers['X-Amzn-Trace-Id'];
   console.log(JSON.stringify({ traceId, event }));
 
+  if (!traceId) {
+    throw new Error('Request must have a traceId.');
+  }
+
+  if (!process.env.RIOT_API_TOKEN) {
+    throw new Error('RIOT_API_TOKEN environment variable must be set!');
+  }
+
   if (event.body === 'serverless-warmer') {
     return warmUp(traceId, 'Function is warm.');
   }
 
   // Request validation
-  const regionStr: string = event.pathParameters?.region?.toLowerCase();
-  if (!regionIsValid(regionStr)) {
+  const regionStr: string | undefined = event.pathParameters?.region?.toLowerCase();
+  if (!regionStr || !regionIsValid(regionStr)) {
     return badRequest(traceId, `Invalid region. Use one of: ${getValidRegions()}`);
   }
 
   const region: Region = Region[regionStr.toUpperCase() as keyof typeof Region];
 
-  const name: string = event.pathParameters?.name?.toLowerCase();
-  if (!nameIsValid(name)) {
+  const name: string | undefined = event.pathParameters?.name?.toLowerCase();
+  if (!name || !nameIsValid(name)) {
     return badRequest(traceId, 'Name must be at least three characters long.');
   }
 

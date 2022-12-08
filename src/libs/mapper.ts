@@ -25,7 +25,7 @@ export const mapSummoner = (summoner: RiotResponse, r: Region): SummonerEntity =
     region: r,
     level: summoner.summonerLevel,
     revisionDate: summoner.revisionDate,
-    accountId: summoner.accountId,
+    accountId: summoner.accountId
   };
 };
 
@@ -38,7 +38,7 @@ export const mapDynamoSummoner = (attributes: AttributeMap, r: Region): Summoner
     region: r,
     level: parseInt(attributes.l.toString()),
     revisionDate: parseInt(attributes.rd.toString()),
-    accountId: attributes.aid.toString(),
+    accountId: attributes.aid.toString()
   };
 };
 

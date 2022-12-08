@@ -3,7 +3,7 @@ export enum Region {
   EUNE = 'EUNE',
   EUW = 'EUW',
   OCE = 'OCE',
-  LAS = 'LAS',
+  LAS = 'LAS'
 }
 
 export const regions: { [key: string]: string } = {
@@ -11,5 +11,5 @@ export const regions: { [key: string]: string } = {
   EUNE: 'eun1',
   EUW: 'euw1',
   OCE: 'oc1',
-  LAS: 'la2',
+  LAS: 'la2'
 };

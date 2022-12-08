@@ -10,7 +10,7 @@ import { SQSMessage } from '@libs/types/sqsMessages';
 const updateOrDeleteSummoner = async (
   name: string,
   region: Region,
-  token: string,
+  token: string
 ): Promise<void> => {
   let response: RiotResponse;
 
@@ -19,7 +19,7 @@ const updateOrDeleteSummoner = async (
   } catch (e) {
     if (e.message?.includes('summoner not found')) {
       console.log(
-        `Deleting summoner ${region.toUpperCase()}#${name.toUpperCase} - summoner not found`,
+        `Deleting summoner ${region.toUpperCase()}#${name.toUpperCase} - summoner not found`
       );
       await deleteSummoner(name, region);
       return;
@@ -34,7 +34,7 @@ const updateOrDeleteSummoner = async (
     console.log(
       `Deleting summoner ${region.toUpperCase()}#${name.toUpperCase()} - summoner name has changed to ${
         summoner.name.toUpperCase
-      }`,
+      }`
     );
 
     await deleteSummoner(name, region);
@@ -47,12 +47,16 @@ const updateOrDeleteSummoner = async (
 export const main = async (event: SQSEvent): Promise<void> => {
   const summoners: SQSMessage[] = event.Records.map((event: SQSRecord) => JSON.parse(event.body));
 
+  if (!process.env.RIOT_API_TOKEN) {
+    throw new Error('RIOT_API_TOKEN environment variable must be set!');
+  }
+
   for (const summoner of summoners) {
     try {
       await updateOrDeleteSummoner(
         summoner.name,
         Region[summoner.region as keyof typeof Region],
-        process.env.RIOT_API_TOKEN,
+        process.env.RIOT_API_TOKEN
       );
     } catch (e) {
       console.error(`Could not update summoner ${summoner.region}#${summoner.name}`, e);
