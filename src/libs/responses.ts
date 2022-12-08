@@ -81,13 +81,19 @@ export const summonersApiResponse = (
 ): APIGatewayProxyResult => {
   log(traceId, 200);
 
+  const earliestAvailabilityDate: number | null =
+    summoners?.length > 0 ? summoners[0].availabilityDate : null;
+
+  const latestAvailabilityDate: number | null =
+    summoners?.length > 0 ? summoners[summoners.length - 1].availabilityDate : null;
+
   return {
     statusCode: 200,
     headers: CORS_HEADERS,
     body: JSON.stringify({
       summoners,
-      forwards: summoners?.length > 0 && summoners[summoners.length - 1].availabilityDate,
-      backwards: summoners?.length > 0 && summoners[0].availabilityDate
+      backwards: earliestAvailabilityDate,
+      forwards: latestAvailabilityDate
     })
   };
 };
