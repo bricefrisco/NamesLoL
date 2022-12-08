@@ -8,13 +8,12 @@
     "lint": "eslint --ext .ts --ext .js src/**"
   },
   "engines": {
-    "node": ">=18.12.1"
+    "node": ">=16.16.0"
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.226.0",
     "@middy/core": "^4.0.3",
     "@middy/http-json-body-parser": "^4.0.3",
-    "aws-sdk": "^2.1271.0",
     "node-fetch": "^3.3.0"
   },
   "devDependencies": {
