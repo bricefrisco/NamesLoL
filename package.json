@@ -1,7 +1,8 @@
 {
+  "author": "Brice Frisco",
   "name": "nameslol-sqs-consumer",
   "version": "1.0.0",
-  "description": "Serverless aws-nodejs-typescript template",
+  "description": "NamesLoL Serverless Backend",
   "main": "serverless.ts",
   "scripts": {
     "lint": "eslint --ext .ts --ext .js src/**"
@@ -13,7 +14,6 @@
     "@middy/core": "^1.5.2",
     "@middy/http-json-body-parser": "^1.5.2",
     "eslint-plugin-prettier": "^4.2.1",
-    "lambda-rate-limiter": "^3.0.1",
     "node-fetch": "^3.0.0"
   },
   "devDependencies": {
@@ -34,7 +34,5 @@
     "ts-node": "^10.8.1",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.7.4"
-  },
-  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
-  "license": "MIT"
+  }
 }
