@@ -1,4 +1,6 @@
-export const warmUp = (message: string) => {
+import { APIGatewayProxyResult } from 'aws-lambda';
+
+export const warmUp = (message: string): APIGatewayProxyResult => {
   return {
     statusCode: 200,
     headers: {
@@ -9,7 +11,7 @@ export const warmUp = (message: string) => {
   };
 };
 
-export const badRequest = (error: string) => {
+export const badRequest = (error: string): APIGatewayProxyResult => {
   return {
     statusCode: 400,
     headers: {
@@ -20,7 +22,7 @@ export const badRequest = (error: string) => {
   };
 };
 
-export const notFound = (message: string) => {
+export const notFound = (message: string): APIGatewayProxyResult => {
   return {
     statusCode: 404,
     headers: {
@@ -31,18 +33,7 @@ export const notFound = (message: string) => {
   };
 };
 
-export const tooManyRequests = (message: string) => {
-  return {
-    statusCode: 429,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.CORS_SITES,
-      'Access-Control-Allow-Methods': process.env.CORS_METHODS,
-    },
-    body: JSON.stringify({ message }),
-  };
-};
-
-export const error = (error: string) => {
+export const error = (error: string): APIGatewayProxyResult => {
   return {
     statusCode: 500,
     headers: {

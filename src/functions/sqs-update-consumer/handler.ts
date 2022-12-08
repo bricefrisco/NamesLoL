@@ -7,80 +7,55 @@ import { deleteSummoner, updateSummoner } from '@libs/dynamoDB';
 import { fetchSummoner } from '@libs/riotApi';
 import { SQSMessage } from '@libs/types/sqsMessages';
 
-const updateOrDeleteSummoner = (
+const updateOrDeleteSummoner = async (
   name: string,
   region: Region,
   token: string,
-) => {
-  return new Promise((resolve, reject) => {
-    fetchSummoner(name, region, token)
-      .then((summoner: RiotResponse) => {
-        return mapSummoner(summoner, region);
-      })
-      .then((summoner: SummonerEntity) => {
-        if (summoner.name.toUpperCase() !== name.toUpperCase()) {
-          deleteSummoner(name, region)
-            .then(() =>
-              resolve(
-                `Deleted summoner ${summoner.name.toUpperCase()}. New summoner name: ${summoner.name.toUpperCase()}`,
-              ),
-            )
-            .catch((err) =>
-              reject(
-                new Error(
-                  `Error occurred while deleting summoner ${summoner.name.toUpperCase()} - ${
-                    err.message
-                  }`,
-                ),
-              ),
-            );
-        }
-        return summoner;
-      })
-      .then((summoner: SummonerEntity) => {
-        updateSummoner(summoner)
-          .then(() =>
-            resolve(`Successfully updated summoner ${region}#${name}`),
-          )
-          .catch((err) =>
-            reject(
-              new Error(
-                `Error occurred while updating summoner ${region}#${name} - ${err.message}`,
-              ),
-            ),
-          );
-      })
-      .catch((err) =>
-        reject(
-          new Error(
-            `Error occurred while fetching summoner ${region}#${name}: ${err.toString()}`,
-          ),
-        ),
-      );
-  });
-};
+): Promise<void> => {
+  let response: RiotResponse;
 
-export const main = (event: SQSEvent) => {
-  return new Promise<any>((resolve) => {
-    const items: SQSMessage[] = event.Records.map((event: SQSRecord) =>
-      JSON.parse(event.body),
+  try {
+    response = await fetchSummoner(name, region, token);
+  } catch (e) {
+    if (e.message?.includes('summoner not found')) {
+      console.log(
+        `Deleting summoner ${region.toUpperCase()}#${name.toUpperCase} - summoner not found`,
+      );
+      await deleteSummoner(name, region);
+      return;
+    } else {
+      throw e;
+    }
+  }
+
+  const summoner: SummonerEntity = mapSummoner(response, region);
+
+  if (name.toUpperCase() !== summoner.name.toUpperCase()) {
+    console.log(
+      `Deleting summoner ${region.toUpperCase()}#${name.toUpperCase()} - summoner name has changed to ${
+        summoner.name.toUpperCase
+      }`,
     );
 
-    const proc = (x: number) => {
-      if (x < items.length) {
-        updateOrDeleteSummoner(
-          items[x].name,
-          Region[items[x].region as keyof typeof Region],
-          process.env.RIOT_API_TOKEN,
-        )
-          .then((msg) => console.log(msg))
-          .catch((err) => console.error(err))
-          .finally(() => proc(x + 1));
-      } else {
-        resolve('done');
-      }
-    };
+    await deleteSummoner(name, region);
+  } else {
+    console.log(`Updating summoner ${region.toUpperCase()}#${name.toUpperCase()}`);
+    await updateSummoner(summoner);
+  }
+};
 
-    proc(0);
-  });
+export const main = async (event: SQSEvent): Promise<void> => {
+  const summoners: SQSMessage[] = event.Records.map((event: SQSRecord) => JSON.parse(event.body));
+
+  for (const summoner of summoners) {
+    try {
+      await updateOrDeleteSummoner(
+        summoner.name,
+        Region[summoner.region as keyof typeof Region],
+        process.env.RIOT_API_TOKEN,
+      );
+    } catch (e) {
+      console.error(`Could not update summoner ${summoner.region}#${summoner.name}`, e);
+    }
+  }
 };

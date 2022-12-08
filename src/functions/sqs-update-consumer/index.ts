@@ -14,8 +14,7 @@ export default {
         'dynamodb:UpdateItem',
         'dynamodb:DeleteItem',
       ],
-      Resource:
-        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
+      Resource: 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
     },
   ],
   events: [

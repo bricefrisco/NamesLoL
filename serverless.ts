@@ -1,11 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-import {
-  sqsUpdateConsumer,
-  sqsUpdateProducer,
-  summonerApi,
-  summonersApi,
-} from '@functions/index';
+import { sqsUpdateConsumer, sqsUpdateProducer, summonerApi, summonersApi } from '@functions/index';
 
 const serverlessConfiguration: AWS = {
   service: 'nameslol',
@@ -33,19 +28,14 @@ const serverlessConfiguration: AWS = {
     },
   },
 
-  plugins: [
-    'serverless-esbuild',
-    'serverless-iam-roles-per-function',
-    'serverless-plugin-warmup',
-  ],
+  plugins: ['serverless-esbuild', 'serverless-iam-roles-per-function', 'serverless-plugin-warmup'],
 
   provider: {
     name: 'aws',
     runtime: 'nodejs14.x',
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-      NODE_OPTIONS:
-        '--enable-source-maps --stack-trace-limit=1000 --trace-deprecation',
+      NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000 --trace-deprecation',
       RIOT_API_TOKEN: '${ssm:/riot-api-token}',
       DYNAMODB_TABLE: '${sls:stage}-SummonerNames',
       SQS_QUEUE_URL:

@@ -1,9 +1,5 @@
 import { DynamoDB } from 'aws-sdk';
-import {
-  QueryOutput,
-  UpdateItemOutput,
-  DeleteItemOutput,
-} from 'aws-sdk/clients/dynamodb';
+import { QueryOutput, UpdateItemOutput, DeleteItemOutput } from 'aws-sdk/clients/dynamodb';
 import { Region } from '@libs/types/region';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 
@@ -21,157 +17,113 @@ export interface DynamoEntity {
 
 const client = new DynamoDB.DocumentClient();
 
-export const querySummoner = (
-  region: Region,
-  name: string,
-): Promise<QueryOutput> => {
-  return new Promise((resolve, reject) => {
-    client.query(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        ExpressionAttributeValues: {
-          ':n': region.toUpperCase() + '#' + name.toUpperCase(),
-        },
-        KeyConditionExpression: 'n = :n',
+export const querySummoner = async (region: Region, name: string): Promise<QueryOutput> => {
+  return await client
+    .query({
+      TableName: process.env.DYNAMODB_TABLE,
+      ExpressionAttributeValues: {
+        ':n': region.toUpperCase() + '#' + name.toUpperCase(),
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      },
-    );
-  });
+      KeyConditionExpression: 'n = :n',
+    })
+    .promise();
 };
 
-export const querySummonersBetweenDate = (
+export const querySummonersBetweenDate = async (
   region: Region,
-  t1: number,
-  t2: number,
+  t1: Date,
+  t2: Date,
 ): Promise<QueryOutput> => {
-  return new Promise((resolve, reject) => {
-    client.query(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        Limit: 8000,
-        ExpressionAttributeValues: {
-          ':region': region.toUpperCase(),
-          ':t1': t1,
-          ':t2': t2,
-        },
-        KeyConditionExpression: 'r = :region and ad between :t1 and :t2',
-        IndexName: 'region-activation-date-index',
+  return await client
+    .query({
+      TableName: process.env.DYNAMODB_TABLE,
+      Limit: 8000,
+      ExpressionAttributeValues: {
+        ':region': region.toUpperCase(),
+        ':t1': t1.valueOf(),
+        ':t2': t2.valueOf(),
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      },
-    );
-  });
+      KeyConditionExpression: 'r = :region and ad between :t1 and :t2',
+      IndexName: 'region-activation-date-index',
+    })
+    .promise();
 };
 
-export const querySummoners = (
+export const querySummoners = async (
   region: Region,
   timestamp: number,
   backwards: boolean,
 ): Promise<QueryOutput> => {
-  return new Promise((resolve, reject) => {
-    client.query(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        Limit: 35,
-        ExpressionAttributeValues: {
-          ':region': region.toUpperCase(),
-          ':timestamp': timestamp,
-        },
-        KeyConditionExpression: backwards
-          ? 'r = :region and ad <= :timestamp'
-          : 'r = :region and ad >= :timestamp',
-        IndexName: 'region-activation-date-index',
-        ScanIndexForward: !backwards,
+  return await client
+    .query({
+      TableName: process.env.DYNAMODB_TABLE,
+      Limit: 35,
+      ExpressionAttributeValues: {
+        ':region': region.toUpperCase(),
+        ':timestamp': timestamp,
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      },
-    );
-  });
+      KeyConditionExpression: backwards
+        ? 'r = :region and ad <= :timestamp'
+        : 'r = :region and ad >= :timestamp',
+      IndexName: 'region-activation-date-index',
+      ScanIndexForward: !backwards,
+    })
+    .promise();
 };
 
-export const querySummonersByNameSize = (
+export const querySummonersByNameSize = async (
   region: Region,
   timestamp: number,
   backwards: boolean,
   nameSize: number,
 ): Promise<QueryOutput> => {
-  return new Promise((resolve, reject) => {
-    client.query(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        Limit: 35,
-        ExpressionAttributeValues: {
-          ':nameLength': `${region.toUpperCase()}#${nameSize}`,
-          ':timestamp': timestamp,
-        },
-        KeyConditionExpression: backwards
-          ? 'nl = :nameLength and ad <= :timestamp'
-          : 'nl = :nameLength and ad >= :timestamp',
-        IndexName: 'name-length-availability-date-index',
-        ScanIndexForward: !backwards,
+  return await client
+    .query({
+      TableName: process.env.DYNAMODB_TABLE,
+      Limit: 35,
+      ExpressionAttributeValues: {
+        ':nameLength': `${region.toUpperCase()}#${nameSize}`,
+        ':timestamp': timestamp,
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      },
-    );
-  });
+      KeyConditionExpression: backwards
+        ? 'nl = :nameLength and ad <= :timestamp'
+        : 'nl = :nameLength and ad >= :timestamp',
+      IndexName: 'name-length-availability-date-index',
+      ScanIndexForward: !backwards,
+    })
+    .promise();
 };
 
-export const updateSummoner = (
-  summoner: SummonerEntity,
-): Promise<UpdateItemOutput> => {
-  return new Promise((resolve, reject) => {
-    client.update(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        Key: {
-          n: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase(),
-        },
-        ExpressionAttributeValues: {
-          ':ad': summoner.availabilityDate,
-          ':r': summoner.region.toUpperCase(),
-          ':aid': summoner.accountId,
-          ':rd': summoner.revisionDate,
-          ':l': summoner.level,
-          ':nl': `${summoner.region.toUpperCase()}#${summoner.name.length}`,
-          ':ld': summoner.lastUpdated,
-          ':si': summoner.summonerIcon,
-        },
-        UpdateExpression:
-          'set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld, si = :si',
+export const updateSummoner = async (summoner: SummonerEntity): Promise<UpdateItemOutput> => {
+  return await client
+    .update({
+      TableName: process.env.DYNAMODB_TABLE,
+      Key: {
+        n: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase(),
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
+      ExpressionAttributeValues: {
+        ':ad': summoner.availabilityDate,
+        ':r': summoner.region.toUpperCase(),
+        ':aid': summoner.accountId,
+        ':rd': summoner.revisionDate,
+        ':l': summoner.level,
+        ':nl': `${summoner.region.toUpperCase()}#${summoner.name.length}`,
+        ':ld': summoner.lastUpdated,
+        ':si': summoner.summonerIcon,
       },
-    );
-  });
+      UpdateExpression:
+        'set ad = :ad, r = :r, aid = :aid, rd = :rd, l = :l, nl = :nl, ld = :ld, si = :si',
+    })
+    .promise();
 };
 
-export const deleteSummoner = (
-  name: string,
-  region: Region,
-): Promise<DeleteItemOutput> => {
-  return new Promise<DeleteItemOutput>((resolve, reject) => {
-    client.delete(
-      {
-        TableName: process.env.DYNAMODB_TABLE,
-        Key: {
-          n: region.toUpperCase() + '#' + name.toUpperCase(),
-        },
+export const deleteSummoner = async (name: string, region: Region): Promise<DeleteItemOutput> => {
+  return await client
+    .delete({
+      TableName: process.env.DYNAMODB_TABLE,
+      Key: {
+        n: region.toUpperCase() + '#' + name.toUpperCase(),
       },
-      (err, data) => {
-        if (err) reject(err);
-        else resolve(data);
-      },
-    );
-  });
+    })
+    .promise();
 };

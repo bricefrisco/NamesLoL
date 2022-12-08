@@ -5,13 +5,9 @@ import { mapDynamoSummoner } from '@libs/mapper';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 import { AttributeMap, QueryOutput } from 'aws-sdk/clients/dynamodb';
 import { badRequest, error, warmUp } from '@libs/responses';
-import {
-  parseNameLength,
-  parseTimestamp,
-  validateRegion,
-} from '@libs/validation';
+import { getValidRegions, parseNameLength, parseTimestamp, regionIsValid } from '@libs/validation';
 
-const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
+const mapResponse = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
   return {
     statusCode: 200,
     headers: {
@@ -20,47 +16,25 @@ const respond = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
     },
     body: JSON.stringify({
       summoners,
-      forwards:
-        summoners &&
-        summoners.length > 0 &&
-        summoners[summoners.length - 1].availabilityDate,
-      backwards:
-        summoners && summoners.length > 0 && summoners[0].availabilityDate,
+      forwards: summoners?.length > 0 && summoners[summoners.length - 1].availabilityDate,
+      backwards: summoners?.length > 0 && summoners[0].availabilityDate,
     }),
   };
 };
 
-export const main = async (
-  event: APIGatewayEvent,
-): Promise<APIGatewayProxyResult> => {
-  console.log(JSON.stringify(event));
-
+export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   if (event.body === 'serverless-warmer') {
-    return new Promise((resolve) => {
-      console.log('Function is warm!');
-      resolve(warmUp('Function is warm.'));
-    });
+    console.log('Function is warm!');
+    return warmUp('Function is warm.');
   }
 
-  if (!event.queryStringParameters) {
-    return badRequest(
-      "Required parameter 'timestamp' is not present. Example: /{region}/summoners?timestamp=12345",
-    );
+  // Request validation
+  const regionStr: string = event.pathParameters?.region?.toLowerCase();
+  if (!regionIsValid(regionStr)) {
+    return badRequest(`Invalid region. Use one of: ${getValidRegions()}`);
   }
 
-  const region: string | Region = event.pathParameters.region
-    ? event.pathParameters.region.toLowerCase()
-    : undefined;
-
-  try {
-    validateRegion(region);
-  } catch (e) {
-    return badRequest(e.message);
-  }
-
-  const backwards =
-    event.queryStringParameters.backwards !== null &&
-    event.queryStringParameters.backwards === 'true';
+  const region: Region = Region[regionStr.toUpperCase() as keyof typeof Region];
 
   let timestamp: number;
   try {
@@ -76,51 +50,26 @@ export const main = async (
     return badRequest(e.message);
   }
 
-  if (nameLength) {
-    console.log('Querying summoners by name size...');
-    return querySummonersByNameSize(
-      Region[region.toUpperCase() as keyof typeof Region],
-      timestamp,
-      backwards,
-      nameLength,
-    )
-      .then((data) =>
-        data.Items.sort(
-          (a, b) => parseInt(a.ad.toString()) - parseInt(b.ad.toString()),
-        ).map((d) =>
-          mapDynamoSummoner(
-            d,
-            Region[region.toUpperCase() as keyof typeof Region],
-          ),
-        ),
-      )
-      .then(respond)
-      .catch((err) => {
-        console.error(err);
-        return error(err.message);
-      });
-  }
+  const backwards = event.queryStringParameters?.backwards === 'true';
 
-  console.log('Querying summoners...');
-  return querySummoners(
-    Region[region.toUpperCase() as keyof typeof Region],
-    timestamp,
-    backwards,
-  )
-    .then((data: QueryOutput) =>
-      data.Items.sort(
-        (a: AttributeMap, b: AttributeMap) =>
-          parseInt(a.ad.toString()) - parseInt(b.ad.toString()),
-      ).map((d: AttributeMap) =>
-        mapDynamoSummoner(
-          d,
-          Region[region.toUpperCase() as keyof typeof Region],
-        ),
-      ),
-    )
-    .then(respond)
-    .catch((err) => {
-      console.error(err);
-      return error(err.message);
-    });
+  // Fetch names from DynamoDB
+  try {
+    let queryOutput: QueryOutput;
+    if (nameLength) {
+      console.log('Querying summoners by name size...');
+      queryOutput = await querySummonersByNameSize(region, timestamp, backwards, nameLength);
+    } else {
+      console.log('Querying summoners...');
+      queryOutput = await querySummoners(region, timestamp, backwards);
+    }
+
+    const summoners: SummonerEntity[] = queryOutput.Items.map((item: AttributeMap) =>
+      mapDynamoSummoner(item, region),
+    );
+
+    return mapResponse(summoners);
+  } catch (e) {
+    console.error(e);
+    return error(e.message || 'Internal server error');
+  }
 };

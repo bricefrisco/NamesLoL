@@ -17,9 +17,7 @@ export default {
     {
       Effect: 'Allow',
       Action: ['sqs:SendMessage'],
-      Resource: [
-        'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo',
-      ],
+      Resource: ['arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo'],
     },
   ],
   events: [
