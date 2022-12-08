@@ -1,4 +1,4 @@
-# NamesLoL
+# NamesLoL - Backend
 
 👁️ Find upcoming and recently expired League of Legends summoner names.  
 🔎 Search for summoner names to find out if they are available, or when they will become available.  
@@ -6,20 +6,49 @@
 
 ## Official Website
 
-https://nameslol.com/
+https://www.nameslol.com/
 
 ## Architecture
 
-![architecture](https://i.imgur.com/MnuaMxk.png)
+![architecture](https://i.imgur.com/KK3qnE1.png)
+
+There are three primary sections/processes of this application:
+
+1. A scheduler (1-6) which periodically refreshes summoner data stored in DynamoDB
+2. `/{region}/summoner/{name}` API (8-10), where the latest summoner information is fetched from Riot API, persisted to DynamoDB, and returned to the end user
+3. `/{region}/summoners` API (11-12), where expiring summoner names are queried from DynamoDB and returned to the end user
+
+We dive deeper into each of these three sections below.
+
+### 1. Scheduler to refresh data
+
+1. A CRON scheduler triggers a Lambda function, `SQSUpdateProducer`
+2. `SQSUpdateProducer` queries DynamoDB (`SummonerNames`) for names which are expired or have expired between a specified period
+3. `SQSUpdateProducer` sends the names queried above to an SQS Queue (`NameUpdateQueue.fifo`)
+4. The `NameUpdateQueue.fifo` triggers the `SQSUpdateConsumer` lambda function
+5. `SQSUpdateConsumer` fetches the latest summoner data from Riot API
+6. `SQSUpdateConsumer` updates the latest data fetched above into DynamoDB
+
+### 2. Summoner API
+
+7. An end user makes an API request that is routed via API Gateway
+8. API Gateway routes the request and invokes the `SummonerAPI` lambda function
+9. `SummonerAPI` fetches the latest summoner data from Riot API
+10. `SummonerAPI` persists the data fetched above into DynamoDB. The data is then sent back to the user
+
+### 3. Summoners API
+
+7. An end user makes an API request that is routed via API Gateway
+8. API Gateway routes this request and invokes the `SummonersAPI` lambda function
+9. `SummonersAPI` fetches expiring summoner names from DynamoDB. The data is then sent back to the user
 
 ## Tech Stack
 
-- Frontend written in Javascript using the ReactJS library.
-- Backend written in Typescript using NodeJS.
-- Orchestrated using Serverless Framework
-- Data is stored in AWS DynamoDB.
-- Frontend is hosted in AWS S3 behind CloudFront.
-- Backend is run by Lambda functions behind API Gateway
+- Written in Typescript using NodeJS
+- Orchestrated using Serverless Framework and deployed into AWS
+- Summoner data stored in DynamoDB
+- Requests served behind API Gateway
+- Serverless computing done via Lambda functions
 
 ## Bugs and Feature Requests
 
