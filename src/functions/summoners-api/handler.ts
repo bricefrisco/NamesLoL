@@ -42,7 +42,7 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     return badRequest(traceId, e.message);
   }
 
-  const backwards = event.queryStringParameters?.backwards === 'true';
+  const backwards: boolean = event.queryStringParameters?.backwards === 'true';
 
   // Fetch names from DynamoDB
   try {
@@ -56,7 +56,7 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     const summoners: SummonerEntity[] = queryOutput.Items
       ? queryOutput.Items.map((item: Record<string, NativeAttributeValue>) =>
           mapDynamoSummoner(item, region)
-        )
+        ).sort((a: SummonerEntity, b: SummonerEntity) => a.availabilityDate - b.availabilityDate)
       : [];
 
     return summonersApiResponse(traceId, summoners);
