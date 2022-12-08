@@ -118,7 +118,7 @@ export const updateSummoner = async (summoner: SummonerEntity): Promise<UpdateCo
     new UpdateCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
-        n: { S: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase() }
+        n: summoner.region.toUpperCase() + '#' + summoner.name.toUpperCase()
       },
       ExpressionAttributeValues: {
         ':ad': summoner.availabilityDate,
@@ -144,7 +144,7 @@ export const deleteSummoner = async (
     new DeleteCommand({
       TableName: DYNAMODB_TABLE,
       Key: {
-        n: { S: region.toUpperCase() + '#' + name.toUpperCase() }
+        n: region.toUpperCase() + '#' + name.toUpperCase()
       }
     })
   );
