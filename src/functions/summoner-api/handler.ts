@@ -1,105 +1,52 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { Region } from '@libs/types/region';
-import {
-  badRequest,
-  error,
-  notFound,
-  tooManyRequests,
-  warmUp,
-} from '@libs/responses';
-import { validateName, validateRegion } from '@libs/validation';
+import { badRequest, error, notFound, summonerApiResponse, warmUp } from '@libs/responses';
+import { getValidRegions, nameIsValid, regionIsValid } from '@libs/validation';
 import { fetchSummoner } from '@libs/riotApi';
 import { mapSummoner } from '@libs/mapper';
 import { RiotResponse } from '@libs/types/riotResponse';
 import { SummonerEntity } from '@libs/types/summonerEntity';
 import { updateSummoner } from '@libs/dynamoDB';
-import limiter from 'lambda-rate-limiter';
 
-const limit = limiter({
-  interval: 1300,
-  uniqueTokenPerInterval: 500,
-});
-
-export const success = (summoner: SummonerEntity): APIGatewayProxyResult => {
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.CORS_SITES,
-      'Access-Control-Allow-Methods': process.env.CORS_METHODS,
-    },
-    body: JSON.stringify(summoner),
-  };
-};
-
-export const main = (
-  event: APIGatewayEvent,
-): Promise<APIGatewayProxyResult> => {
+export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event));
 
-  if (event.body === 'serverless-warmer') {
-    return new Promise((resolve) => {
-      console.log('Function is warm!');
-      resolve(warmUp('Function is warm.'));
-    });
+  if (!process.env.RIOT_API_TOKEN) {
+    throw new Error('RIOT_API_TOKEN environment variable must be set!');
   }
 
-  const ip = event.headers['X-Forwarded-For'].split(',')[0];
+  if (event.body === 'serverless-warmer') {
+    return warmUp('Function is warm.');
+  }
 
-  return limit
-    .check(1, event.headers['X-Forwarded-For'].split(',')[0])
-    .then(() => {
-      const region: string | Region = event.pathParameters.region
-        ? event.pathParameters.region.toLowerCase()
-        : undefined;
-      try {
-        validateRegion(region);
-      } catch (e) {
-        return badRequest(e.message);
-      }
+  // Request validation
+  const regionStr: string | undefined = event.pathParameters?.region?.toLowerCase();
+  if (!regionStr || !regionIsValid(regionStr)) {
+    return badRequest(`Invalid region. Use one of: ${getValidRegions()}`);
+  }
 
-      const name: string = event.pathParameters.name
-        ? event.pathParameters.name.toLowerCase()
-        : undefined;
-      try {
-        validateName(name);
-      } catch (e) {
-        return badRequest(e.message);
-      }
+  const region: Region = Region[regionStr.toUpperCase() as keyof typeof Region];
 
-      console.log('fetching summoner by name: ' + name);
-      return fetchSummoner(
-        name,
-        Region[region.toUpperCase() as keyof typeof Region],
-        process.env.RIOT_API_TOKEN,
-      )
-        .then((summoner: RiotResponse) =>
-          mapSummoner(
-            summoner,
-            Region[region.toUpperCase() as keyof typeof Region],
-          ),
-        )
-        .then((summoner: SummonerEntity) => {
-          if (
-            !event.queryStringParameters ||
-            !event.queryStringParameters.hideSearch
-          ) {
-            updateSummoner(summoner);
-          }
+  const name: string | undefined = event.pathParameters?.name?.toLowerCase();
+  if (!name || !nameIsValid(name)) {
+    return badRequest('Name must be at least three characters long.');
+  }
 
-          return summoner;
-        })
-        .then(success)
-        .catch((e) => {
-          if (e.toString().includes('summoner not found')) {
-            return notFound(`Summoner by name '${name}' was not found`);
-          }
+  try {
+    // Fetch summoner name from Riot API
+    const response: RiotResponse = await fetchSummoner(name, region, process.env.RIOT_API_TOKEN);
 
-          console.error(e);
-          return error(e.message ? e.message : e);
-        });
-    })
-    .catch(() => {
-      console.log(`'${ip} throttled for sending too many requests.`);
-      return tooManyRequests('Too many requests');
-    });
+    // Save summoner in DynamoDB
+    const summoner: SummonerEntity = mapSummoner(response, region);
+    await updateSummoner(summoner);
+
+    return summonerApiResponse(summoner);
+  } catch (e) {
+    if (e.message?.includes('summoner not found')) {
+      return notFound(`Summoner by name ${name} was not found`);
+    }
+
+    console.error(e);
+    return error(e.message || 'Internal server error.');
+  }
 };

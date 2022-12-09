@@ -1,31 +1,22 @@
 import { Region } from '@libs/types/region';
-import { badRequest } from '@libs/responses';
 
 const regions: string[] = Object.values(Region).map((r) => r.toLowerCase());
 
-export const validateRegion = (region: string) => {
-  if (!regions.includes(region)) {
-    return badRequest(
-      `Invalid region '${region}'. Correct path is /{region}/summoners, with one of these regions: ${regions.join(
-        ', ',
-      )}`,
-    );
-  }
+export const regionIsValid = (region: string): boolean => {
+  return regions.includes(region);
 };
 
-export const validateName = (name: string) => {
-  if (name == null) {
-    throw new Error('Name cannot be empty. Example: /{region}/summoner/{name}');
-  }
-
-  if (name.length < 3) throw new Error('Name length cannot be less than 3');
+export const getValidRegions = (): string[] => {
+  return regions;
 };
 
-export const parseTimestamp = (timestamp: string): number => {
+export const nameIsValid = (name: string): boolean => {
+  return name.length >= 3;
+};
+
+export const parseTimestamp = (timestamp: string | undefined): number => {
   if (timestamp == null) {
-    throw new Error(
-      'Timestamp cannot be null. Example: /{region}/summoners?timestamp=12345',
-    );
+    throw new Error('Timestamp cannot be null. Example: /{region}/summoners?timestamp=12345');
   }
 
   let parsedTimestamp: number;
@@ -34,7 +25,7 @@ export const parseTimestamp = (timestamp: string): number => {
     parsedTimestamp = parseInt(timestamp);
   } catch (e) {
     throw new Error(
-      'Could not parse timestamp. Please include numbers only. Example: /{region}/summoners?timestamp=12345',
+      'Could not parse timestamp. Please include numbers only. Example: /{region}/summoners?timestamp=12345'
     );
   }
 
@@ -45,16 +36,14 @@ export const parseTimestamp = (timestamp: string): number => {
   return parsedTimestamp;
 };
 
-export const parseNameLength = (nameLength: string): number => {
-  if (nameLength == null) return null;
+export const parseNameLength = (nameLength: string | undefined): number | null => {
+  if (!nameLength) return null;
 
   let parsedNameLength: number;
   try {
     parsedNameLength = parseInt(nameLength);
   } catch (e) {
-    throw new Error(
-      'Could not parse name length. Please include a number between 3 and 16',
-    );
+    throw new Error('Could not parse name length. Please include a number between 3 and 16');
   }
 
   if (parsedNameLength < 3) {

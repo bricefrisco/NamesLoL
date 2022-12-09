@@ -11,41 +11,39 @@ export default {
       Action: ['dynamodb:Query'],
       Resource: [
         'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames',
-        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*',
-      ],
+        'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${sls:stage}-SummonerNames/index/*'
+      ]
     },
     {
       Effect: 'Allow',
       Action: ['sqs:SendMessage'],
-      Resource: [
-        'arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo',
-      ],
-    },
+      Resource: ['arn:aws:sqs:${aws:region}:${aws:accountId}:${sls:stage}-NameUpdateQueue.fifo']
+    }
   ],
   events: [
     {
       schedule: {
         rate: ['cron(0 * ? * * *)'], // Every hour
         input: {
-          refreshType: 'HOURLY_REFRESH',
-        },
-      },
+          refreshType: 'HOURLY_REFRESH'
+        }
+      }
     },
     {
       schedule: {
         rate: ['cron(0 0 ? * 6 *)'], // Every Friday
         input: {
-          refreshType: 'WEEKLY_REFRESH',
-        },
-      },
+          refreshType: 'WEEKLY_REFRESH'
+        }
+      }
     },
     {
       schedule: {
         rate: ['cron(0 0 1 * ? *)'], // First day of each month
         input: {
-          refreshType: 'MONTHLY_REFRESH',
-        },
-      },
-    },
-  ],
+          refreshType: 'MONTHLY_REFRESH'
+        }
+      }
+    }
+  ]
 };

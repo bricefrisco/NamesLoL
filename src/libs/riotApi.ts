@@ -1,34 +1,26 @@
-import fetch, { Response } from 'node-fetch';
+import fetch from 'node-fetch';
 import { RiotResponse } from '@libs/types/riotResponse';
-import { URL } from 'url';
-import { regions } from '@libs/types/region';
+import { Region, regions } from '@libs/types/region';
 
-const parseResponse = (res: Response): Promise<RiotResponse> => {
-  return new Promise((resolve, reject) => {
-    res
-      .json()
-      .then((response: RiotResponse) => {
-        if (response.status?.message) {
-          reject(response.status.message);
-        } else {
-          resolve(response);
-        }
-      })
-      .catch((e) => reject(e));
-  });
-};
-
-export const fetchSummoner = (
+export const fetchSummoner = async (
   name: string,
-  region: string,
-  token: string,
+  region: Region,
+  token: string
 ): Promise<RiotResponse> => {
-  const url = new URL(
+  const res = await fetch(
     `https://${regions[region]}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}`,
+    {
+      headers: {
+        'X-Riot-Token': token
+      }
+    }
   );
-  return fetch(url.toString(), {
-    headers: {
-      'X-Riot-Token': token,
-    },
-  }).then((res) => parseResponse(res));
+
+  const response: RiotResponse = (await res.json()) as RiotResponse;
+
+  if (response.status?.message) {
+    throw new Error(response.status.message);
+  }
+
+  return response;
 };
