@@ -9,32 +9,27 @@ import { SummonerEntity } from '@libs/types/summonerEntity';
 import { updateSummoner } from '@libs/dynamoDB';
 
 export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
-  const traceId = event.headers['X-Amzn-Trace-Id'];
-  console.log(JSON.stringify({ traceId, event }));
-
-  if (!traceId) {
-    throw new Error('Request must have a traceId.');
-  }
+  console.log(JSON.stringify(event));
 
   if (!process.env.RIOT_API_TOKEN) {
     throw new Error('RIOT_API_TOKEN environment variable must be set!');
   }
 
   if (event.body === 'serverless-warmer') {
-    return warmUp(traceId, 'Function is warm.');
+    return warmUp('Function is warm.');
   }
 
   // Request validation
   const regionStr: string | undefined = event.pathParameters?.region?.toLowerCase();
   if (!regionStr || !regionIsValid(regionStr)) {
-    return badRequest(traceId, `Invalid region. Use one of: ${getValidRegions()}`);
+    return badRequest(`Invalid region. Use one of: ${getValidRegions()}`);
   }
 
   const region: Region = Region[regionStr.toUpperCase() as keyof typeof Region];
 
   const name: string | undefined = event.pathParameters?.name?.toLowerCase();
   if (!name || !nameIsValid(name)) {
-    return badRequest(traceId, 'Name must be at least three characters long.');
+    return badRequest('Name must be at least three characters long.');
   }
 
   try {
@@ -45,13 +40,13 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
     const summoner: SummonerEntity = mapSummoner(response, region);
     await updateSummoner(summoner);
 
-    return summonerApiResponse(traceId, summoner);
+    return summonerApiResponse(summoner);
   } catch (e) {
     if (e.message?.includes('summoner not found')) {
-      return notFound(traceId, `Summoner by name ${name} was not found`);
+      return notFound(`Summoner by name ${name} was not found`);
     }
 
     console.error(e);
-    return error(traceId, e.message || 'Internal server error.');
+    return error(e.message || 'Internal server error.');
   }
 };

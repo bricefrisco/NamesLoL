@@ -9,21 +9,16 @@ import { QueryCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { NativeAttributeValue } from '@aws-sdk/util-dynamodb';
 
 export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
-  const traceId = event.headers['X-Amzn-Trace-Id'];
-  console.log(JSON.stringify({ traceId, event }));
-
-  if (!traceId) {
-    throw new Error('Request must have a traceId.');
-  }
+  console.log(JSON.stringify(event));
 
   if (event.body === 'serverless-warmer') {
-    return warmUp(traceId, 'Function is warm.');
+    return warmUp('Function is warm.');
   }
 
   // Request validation
   const regionStr: string | undefined = event.pathParameters?.region?.toLowerCase();
   if (!regionStr || !regionIsValid(regionStr)) {
-    return badRequest(traceId, `Invalid region. Use one of: ${getValidRegions()}`);
+    return badRequest(`Invalid region. Use one of: ${getValidRegions()}`);
   }
 
   const region: Region = Region[regionStr.toUpperCase() as keyof typeof Region];
@@ -32,14 +27,14 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
   try {
     timestamp = parseTimestamp(event.queryStringParameters?.timestamp);
   } catch (e) {
-    return badRequest(traceId, e.message);
+    return badRequest(e.message);
   }
 
   let nameLength: number | null;
   try {
     nameLength = parseNameLength(event.queryStringParameters?.nameLength);
   } catch (e) {
-    return badRequest(traceId, e.message);
+    return badRequest(e.message);
   }
 
   const backwards: boolean = event.queryStringParameters?.backwards === 'true';
@@ -59,9 +54,9 @@ export const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResul
         ).sort((a: SummonerEntity, b: SummonerEntity) => a.availabilityDate - b.availabilityDate)
       : [];
 
-    return summonersApiResponse(traceId, summoners);
+    return summonersApiResponse(summoners);
   } catch (e) {
     console.error(e);
-    return error(traceId, e.message || 'Internal server error');
+    return error(e.message || 'Internal server error');
   }
 };

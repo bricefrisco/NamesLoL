@@ -10,20 +10,20 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': process.env.CORS_METHODS
 };
 
-const log = (traceId: string, statusCode: number, message?: string) => {
-  const jsonLog = JSON.stringify({ traceId, statusCode, message });
+const log = (statusCode: number, message?: string) => {
+  const jsonLog = JSON.stringify({ statusCode, message });
 
-  if (statusCode === 500) {
+  if (statusCode >= 500) {
     console.error(jsonLog);
-  } else if (statusCode === 200) {
+  } else if (statusCode >= 200 && statusCode < 300) {
     console.log(jsonLog);
   } else {
     console.warn(jsonLog);
   }
 };
 
-export const warmUp = (traceId: string, message: string): APIGatewayProxyResult => {
-  log(traceId, 200);
+export const warmUp = (message: string): APIGatewayProxyResult => {
+  log(200);
 
   return {
     statusCode: 200,
@@ -32,8 +32,8 @@ export const warmUp = (traceId: string, message: string): APIGatewayProxyResult 
   };
 };
 
-export const badRequest = (traceId: string, error: string): APIGatewayProxyResult => {
-  log(traceId, 400, error);
+export const badRequest = (error: string): APIGatewayProxyResult => {
+  log(400, error);
 
   return {
     statusCode: 400,
@@ -42,8 +42,8 @@ export const badRequest = (traceId: string, error: string): APIGatewayProxyResul
   };
 };
 
-export const notFound = (traceId: string, message: string): APIGatewayProxyResult => {
-  log(traceId, 404, message);
+export const notFound = (message: string): APIGatewayProxyResult => {
+  log(404, message);
 
   return {
     statusCode: 404,
@@ -52,8 +52,8 @@ export const notFound = (traceId: string, message: string): APIGatewayProxyResul
   };
 };
 
-export const error = (traceId: string, error: string): APIGatewayProxyResult => {
-  log(traceId, 500, error);
+export const error = (error: string): APIGatewayProxyResult => {
+  log(500, error);
 
   return {
     statusCode: 500,
@@ -62,11 +62,8 @@ export const error = (traceId: string, error: string): APIGatewayProxyResult => 
   };
 };
 
-export const summonerApiResponse = (
-  traceId: string,
-  summoner: SummonerEntity
-): APIGatewayProxyResult => {
-  log(traceId, 200);
+export const summonerApiResponse = (summoner: SummonerEntity): APIGatewayProxyResult => {
+  log(200);
 
   return {
     statusCode: 200,
@@ -75,11 +72,8 @@ export const summonerApiResponse = (
   };
 };
 
-export const summonersApiResponse = (
-  traceId: string,
-  summoners: SummonerEntity[]
-): APIGatewayProxyResult => {
-  log(traceId, 200);
+export const summonersApiResponse = (summoners: SummonerEntity[]): APIGatewayProxyResult => {
+  log(200);
 
   const earliestAvailabilityDate: number | null =
     summoners?.length > 0 ? summoners[0].availabilityDate : null;
